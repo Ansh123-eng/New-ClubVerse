@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "mongoose": "^8.18.2",
+    "uri": "^0.1.0",
+    "type": "module"
+  }
+}
