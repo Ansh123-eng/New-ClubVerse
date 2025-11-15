@@ -1,16 +1,67 @@
-import mongoose from 'mongoose';
+import { DataTypes } from 'sequelize';
+import { sequelize } from '../db.js';
+import { v4 as uuidv4 } from 'uuid';
 
-const reservationSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
-  date: { type: String, required: true },
-  time: { type: String, required: true },
-  guests: { type: String, required: true },
-  specialRequests: { type: String },
-  club: { type: String, required: true },
-  clubLocation: { type: String },
-  createdAt: { type: Date, default: Date.now }
+const Reservation = sequelize.define('Reservation', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  userId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: () => uuidv4(), // automatically generate UUID
+    field: 'user_id'
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  date: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  time: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  guests: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  specialRequests: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'special_requests'
+  },
+  club: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  clubLocation: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'club_location'
+  },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: 'confirmed'
+  }
+}, {
+  tableName: 'reservations',
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
-export default mongoose.model('Reservation', reservationSchema);
+export default Reservation;

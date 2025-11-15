@@ -1,6 +1,9 @@
 {
   "dependencies": {
     "mongoose": "^8.18.2",
+    "sequelize": "^6.37.3",
+    "pg": "^8.12.0",
+    "mysql2": "^3.10.3",
     "uri": "^0.1.0",
     "type": "module"
   }

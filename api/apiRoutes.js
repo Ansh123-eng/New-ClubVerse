@@ -5,9 +5,6 @@ import { protect } from '../middlewares/auth.js';
 import User from '../models/user.js';
 import Reservation from '../models/reservation.js';
 import transporter from '../middlewares/mailer.js';
-
-import pkg from '../utils/fileOps.js';
-const { saveReservationToFile } = pkg;
 const router = express.Router();
 
 
@@ -101,7 +98,7 @@ router.post('/reservations', async (req, res) => {
     if (!name || !email || !phone || !date || !time || !guests || !club) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-    const reservation = new Reservation({
+    const reservation = await Reservation.create({
       name,
       email,
       phone,
@@ -111,19 +108,6 @@ router.post('/reservations', async (req, res) => {
       specialRequests,
       club,
       clubLocation
-    });
-    await reservation.save();
-    saveReservationToFile({
-      name,
-      email,
-      phone,
-      date,
-      time,
-      guests,
-      specialRequests,
-      club,
-      clubLocation,
-      createdAt: new Date().toISOString()
     });
 
 

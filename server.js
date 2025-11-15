@@ -14,8 +14,8 @@ debug('Starting server...');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-//12343
-dotenv.config();
+
+dotenv.config({ path: './.env' });
 
 const app = express();
 const PORT = 8080;
@@ -67,7 +67,7 @@ import cookieParser from 'cookie-parser';
 import logger, { logger as winstonLogger } from './middlewares/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { protect } from './middlewares/auth.js';
-import connectDB from './db.js';
+import connectDB, { connectPostgres } from './db.js';
 import mongoose from 'mongoose';
 
 app.set('view engine', 'ejs');
@@ -220,6 +220,7 @@ app.use(errorHandler);
 winstonLogger.info("DEBUG MONGO_URI:", { mongoUri: process.env.MONGO_URI });
 
 connectDB();
+connectPostgres();
 
 let server;
 
