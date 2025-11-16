@@ -27,11 +27,11 @@ const connectDB = async () => {
 };
 
 const sequelize = new Sequelize(
-    process.env.PG_DATABASE || 'clubverse_reservations',
-    process.env.PG_USER || 'postgres',
-    process.env.PG_PASSWORD || 'password',
+    process.env.POSTGRES_DB || 'clubverse',
+    process.env.POSTGRES_USER || 'postgres',
+    process.env.POSTGRES_PASSWORD || 'anshvohra@2002',
     {
-        host: process.env.PG_HOST || 'localhost',
+        host: process.env.POSTGRES_HOST || 'localhost',
         dialect: 'postgres',
         logging: false
     }
