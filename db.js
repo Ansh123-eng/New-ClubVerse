@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { Sequelize } from 'sequelize';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createClient } from 'redis';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,5 +50,29 @@ const connectPostgres = async () => {
     }
 };
 
+// Redis client for caching
+let redisClient = null;
+
+const connectRedis = async () => {
+    try {
+        redisClient = createClient({
+            url: process.env.REDIS_URL || 'redis://redis-10894.c8.us-east-1-4.ec2.cloud.redislabs.com:10894',
+            password: process.env.REDIS_PASSWORD
+        });
+
+        redisClient.on('error', (err) => {
+            console.error('Redis Client Error:', err);
+        });
+
+        await redisClient.connect();
+        console.log('Redis Connected for caching');
+    } catch (error) {
+        console.error('Redis connection error:', error);
+        console.log('Continuing without Redis - caching disabled');
+    }
+};
+
+const getRedisClient = () => redisClient;
+
 export default connectDB;
-export { sequelize, connectPostgres };
+export { sequelize, connectPostgres, connectRedis, getRedisClient };

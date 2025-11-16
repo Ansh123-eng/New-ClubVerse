@@ -20,7 +20,24 @@ const PORT = 8080;
 
 app.get('/api/weather', async (req, res) => {
   try {
+    const redisClient = getRedisClient();
+    const cacheKey = 'weather_data';
+
     const apiKey = process.env.OPENWEATHER_API_KEY;
+    if (!apiKey) {
+      console.error('OPENWEATHER_API_KEY is not set in environment');
+      return res.status(500).send('Weather API key is not configured');
+    }
+
+    // Check cache first
+    if (redisClient) {
+      const cachedData = await redisClient.get(cacheKey);
+      if (cachedData) {
+        console.log('Serving weather data from cache');
+        const weatherData = JSON.parse(cachedData);
+        return res.render('weather', weatherData);
+      }
+    }
 
     const ldhRes = await axios.get(
       `https://api.openweathermap.org/data/2.5/weather?q=Ludhiana,in&appid=${apiKey}&units=metric`
@@ -31,7 +48,8 @@ app.get('/api/weather', async (req, res) => {
     );
     const ldhWeather = ldhRes.data;
     const chdWeather = chdRes.data;
-    res.render('weather', {
+
+    const weatherData = {
       ldh: {
         city: ldhWeather.name,
         temp: ldhWeather.main.temp,
@@ -44,8 +62,17 @@ app.get('/api/weather', async (req, res) => {
         condition: chdWeather.weather[0].description,
         icon: chdWeather.weather[0].icon
       }
-    });
+    };
+
+    // Cache the data for 10 minutes
+    if (redisClient) {
+      await redisClient.setEx(cacheKey, 600, JSON.stringify(weatherData));
+      console.log('Weather data cached in Redis');
+    }
+
+    res.render('weather', weatherData);
   } catch (error) {
+    console.error('Error fetching weather (api):', error && error.stack ? error.stack : error);
     res.status(500).send('Failed to fetch weather data');
   }
 });
@@ -64,7 +91,7 @@ import csurf from 'csurf';
 import logger, { logger as winstonLogger } from './middlewares/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { protect } from './middlewares/auth.js';
-import connectDB, { connectPostgres } from './db.js';
+import connectDB, { connectPostgres, connectRedis, getRedisClient } from './db.js';
 import mongoose from 'mongoose';
 
 app.set('view engine', 'ejs');
@@ -126,7 +153,15 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.css') || path.endsWith('.js')) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
+    } else if (path.match(/\.(png|jpg|jpeg|gif|ico|svg|webp)$/)) {
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+    }
+  }
+}));
 
 import apiRoutes from './api/apiRoutes.js';
 app.use('/api', apiRoutes);
@@ -207,18 +242,32 @@ app.get('/api/team', protect, (req, res) => {
 
 app.get('/weather', async (req, res) => {
   try {
+    const redisClient = getRedisClient();
+    const cacheKey = 'weather_data_page';
+
+    // Check cache first
+    if (redisClient) {
+      const cachedData = await redisClient.get(cacheKey);
+      if (cachedData) {
+        console.log('Serving weather page from cache');
+        const weatherData = JSON.parse(cachedData);
+        return res.render('weather', weatherData);
+      }
+    }
+
     const apiKey = process.env.OPENWEATHER_API_KEY;
-    
+
     const ldhRes = await axios.get(
       `https://api.openweathermap.org/data/2.5/weather?q=Ludhiana,in&appid=${apiKey}&units=metric`
     );
-    
+
     const chdRes = await axios.get(
       `https://api.openweathermap.org/data/2.5/weather?q=Chandigarh,in&appid=${apiKey}&units=metric`
     );
     const ldhWeather = ldhRes.data;
     const chdWeather = chdRes.data;
-    res.render('weather', {
+
+    const weatherData = {
       ldh: {
         city: ldhWeather.name,
         temp: ldhWeather.main.temp,
@@ -231,7 +280,15 @@ app.get('/weather', async (req, res) => {
         condition: chdWeather.weather[0].description,
         icon: chdWeather.weather[0].icon
       }
-    });
+    };
+
+    // Cache the data for 10 minutes
+    if (redisClient) {
+      await redisClient.setEx(cacheKey, 600, JSON.stringify(weatherData));
+      console.log('Weather page data cached in Redis');
+    }
+
+    res.render('weather', weatherData);
   } catch (error) {
     console.error('Error fetching weather:', error);
     res.status(500).send('Failed to fetch weather. Try again later.');
@@ -260,6 +317,7 @@ winstonLogger.info("DEBUG MONGO_URI:", { mongoUri: process.env.MONGO_URI });
 
 connectDB();
 connectPostgres();
+connectRedis();
 
 let server;
 
