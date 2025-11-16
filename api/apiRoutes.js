@@ -2,27 +2,90 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
+import csurf from 'csurf';
 import { protect } from '../middlewares/auth.js';
 import User from '../models/user.js';
 import Reservation from '../models/reservation.js';
 import Membership from '../models/membership.js';
 import transporter from '../middlewares/mailer.js';
+import {
+  checkPasswordStrength,
+  validateEmail,
+  validateName,
+  validatePasswordConfirmation,
+  generateResetToken,
+  hashResetToken,
+  getClientIP
+} from '../utils/validation.js';
+import { logger } from '../middlewares/logger.js';
 const router = express.Router();
 
+// Auth-specific rate limiters
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per window
+  message: 'Too many login attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-router.post('/login', async (req, res, next) => {
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 registration attempts per hour
+  message: 'Too many registration attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// CSRF protection
+const csrfProtection = csurf({
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  }
+});
+
+router.post('/login', authLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const clientIP = getClientIP(req);
+
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      logger.warn(`Invalid email format attempt from ${clientIP}: ${email}`);
+      return res.status(400).render('login', { error: 'Please enter a valid email address' });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
+      logger.warn(`Login attempt for non-existent user: ${email} from ${clientIP}`);
       return res.status(401).render('login', { error: 'Invalid email or password' });
+    }
+
+    if (user.isLocked) {
+      const lockoutMessage = `Account locked due to too many failed attempts. Try again after ${new Date(user.lockUntil).toLocaleString()}`;
+      logger.warn(`Login attempt on locked account: ${email} from ${clientIP}`);
+      return res.status(423).render('login', { error: 'Account temporarily locked', lockoutMessage });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      await user.incLoginAttempts();
+      logger.warn(`Failed login attempt for user: ${email} from ${clientIP}. Attempts: ${user.failedAttempts + 1}`);
+
+      if (user.failedAttempts >= 4) {
+        const lockoutMessage = 'Account locked for 2 hours due to multiple failed attempts';
+        return res.status(423).render('login', { error: 'Account temporarily locked', lockoutMessage });
+      }
+
       return res.status(401).render('login', { error: 'Invalid email or password' });
     }
+
+    await user.resetLoginAttempts();
+    logger.info(`Successful login for user: ${email} from ${clientIP}`);
 
     const token = jwt.sign(
       { id: user._id, email: user.email, name: user.name },
@@ -33,56 +96,94 @@ router.post('/login', async (req, res, next) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000, 
+      maxAge: 24 * 60 * 60 * 1000,
       sameSite: 'strict'
     });
 
     return res.status(302).redirect('/api/dashboard');
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error:', error);
     return res.status(500).render('login', { error: 'Server error occurred. Please try again.' });
   }
 });
 
-router.post('/register', async (req, res, next) => {
+router.post('/register', registerLimiter, async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, confirmPassword } = req.body;
+    const clientIP = getClientIP(req);
 
-    if (!name || !email || !password) {
+    // Basic field validation
+    if (!name || !email || !password || !confirmPassword) {
+      logger.warn(`Registration attempt with missing fields from ${clientIP}`);
       return res.status(400).render('register', {
         error: 'All fields are required'
       });
     }
 
-    if (password.length < 6) {
+    
+    const nameValidation = validateName(name);
+    if (!nameValidation.isValid) {
+      logger.warn(`Invalid name format from ${clientIP}: ${name}`);
       return res.status(400).render('register', {
-        error: 'Password must be at least 6 characters long'
+        error: nameValidation.error
       });
     }
 
+    // Validate email
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      logger.warn(`Invalid email format from ${clientIP}: ${email}`);
+      return res.status(400).render('register', {
+        error: emailValidation.error
+      });
+    }
+
+    // Validate password strength
+    const passwordValidation = checkPasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      logger.warn(`Weak password attempt from ${clientIP}`);
+      return res.status(400).render('register', {
+        error: 'Password does not meet security requirements. Please choose a stronger password.'
+      });
+    }
+
+    // Validate password confirmation
+    const confirmValidation = validatePasswordConfirmation(password, confirmPassword);
+    if (!confirmValidation.isValid) {
+      logger.warn(`Password confirmation mismatch from ${clientIP}`);
+      return res.status(400).render('register', {
+        error: confirmValidation.error
+      });
+    }
+
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      logger.warn(`Registration attempt for existing email from ${clientIP}: ${email}`);
       return res.status(400).render('register', {
         error: 'User already exists with this email'
       });
     }
 
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Create user
     const user = new User({
-      name,
+      name: nameValidation.sanitizedName,
       email,
       password: hashedPassword
     });
 
     await user.save();
+    logger.info(`New user registered: ${email} from ${clientIP}`);
 
     return res.status(201).render('login', {
       success: 'Registration successful! Please login.'
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error('Registration error:', error);
     return res.status(500).render('register', {
       error: 'Server error occurred. Please try again.'
     });

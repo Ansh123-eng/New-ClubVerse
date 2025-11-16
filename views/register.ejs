@@ -108,6 +108,8 @@
 
     .sign-content form label {
       margin-right: 75%;
+      white-space: nowrap;
+      overflow: visible;
     }
 
     .sign-content form h3 {
@@ -118,6 +120,40 @@
     }
     #pass{
       margin-left: 6.5%;
+    }
+
+    label[for="confirmPassword"] {
+      font-size: 22px;
+      margin-left: 6.5%;
+    }
+
+    .password-strength {
+      margin-top: 5px;
+      margin-bottom: 15px;
+    }
+
+    .strength-bar {
+      width: 100%;
+      height: 8px;
+      background-color: #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+
+    .strength-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .strength-weak { background-color: #ff4444; width: 33%; }
+    .strength-medium { background-color: #ffaa00; width: 66%; }
+    .strength-strong { background-color: #44aa44; width: 100%; }
+
+    .error-message {
+      font-size: 14px;
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -143,6 +179,7 @@
     <div class="plans">
       <div class="sign-content">
         <form action="/api/register" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <label for="name"><b>Name:</b></label><br>
           <input
             type="text"
@@ -166,15 +203,156 @@
             type="password"
             id="password"
             name="password"
-            placeholder="Create password (min 6 characters)"
+            placeholder="Create password (min 8 characters)"
             required
-            minlength="6"
+            minlength="8"
           />
-          <button type="submit"><b>Register</b></button>
+          <div id="password-strength" class="password-strength">
+            <div class="strength-bar">
+              <div class="strength-fill" id="strength-fill"></div>
+            </div>
+            <span id="strength-text">Password strength: Weak</span>
+          </div>
+
+          <label for="confirmPassword"><b>Confirm Password:</b></label><br>
+          <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            placeholder="Confirm your password"
+            required
+            minlength="8"
+          />
+          <div id="confirm-error" class="error-message" style="color: red; display: none;"></div>
+
+          <button type="submit" id="register-btn"><b>Register</b></button>
           <p style="margin-top: 15px;">Already have an account? <a href="/" style="color: blue;">Login here</a></p>
         </form>
       </div>
     </div>
   </div>
+
+  <script>
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const strengthFill = document.getElementById('strength-fill');
+    const strengthText = document.getElementById('strength-text');
+    const confirmError = document.getElementById('confirm-error');
+    const registerBtn = document.getElementById('register-btn');
+
+    // Password strength checker
+    function checkPasswordStrength(password) {
+      let score = 0;
+      const errors = [];
+
+      if (password.length < 8) {
+        errors.push('At least 8 characters');
+      } else {
+        score += 1;
+      }
+
+      if (!/[a-z]/.test(password)) {
+        errors.push('Lowercase letter');
+      } else {
+        score += 1;
+      }
+
+      if (!/[A-Z]/.test(password)) {
+        errors.push('Uppercase letter');
+      } else {
+        score += 1;
+      }
+
+      if (!/\d/.test(password)) {
+        errors.push('Number');
+      } else {
+        score += 1;
+      }
+
+      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+        errors.push('Special character');
+      } else {
+        score += 1;
+      }
+
+      return { score, errors };
+    }
+
+    passwordInput.addEventListener('input', function() {
+      const password = this.value;
+      const { score, errors } = checkPasswordStrength(password);
+
+      strengthFill.className = 'strength-fill';
+
+      if (score < 3) {
+        strengthFill.classList.add('strength-weak');
+        strengthText.textContent = 'Weak password';
+        strengthText.style.color = '#ff4444';
+      } else if (score < 5) {
+        strengthFill.classList.add('strength-medium');
+        strengthText.textContent = 'Medium password';
+        strengthText.style.color = '#ffaa00';
+      } else {
+        strengthFill.classList.add('strength-strong');
+        strengthText.textContent = 'Strong password';
+        strengthText.style.color = '#44aa44';
+      }
+    });
+
+   
+    confirmPasswordInput.addEventListener('input', function() {
+      const password = passwordInput.value;
+      const confirmPassword = this.value;
+
+      if (confirmPassword && password !== confirmPassword) {
+        confirmError.textContent = 'Passwords do not match';
+        confirmError.style.display = 'block';
+        registerBtn.disabled = true;
+      } else {
+        confirmError.style.display = 'none';
+        registerBtn.disabled = false;
+      }
+    });
+
+   
+    document.querySelector('form').addEventListener('submit', function(e) {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+
+      let hasError = false;
+
+     
+      if (name.length < 2) {
+        alert('Name must be at least 2 characters long');
+        hasError = true;
+      }
+
+    
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert('Please enter a valid email address');
+        hasError = true;
+      }
+
+      
+      const { score } = checkPasswordStrength(password);
+      if (score < 3) {
+        alert('Please create a stronger password');
+        hasError = true;
+      }
+
+      
+      if (password !== confirmPassword) {
+        alert('Passwords do not match');
+        hasError = true;
+      }
+
+      if (hasError) {
+        e.preventDefault();
+      }
+    });
+  </script>
 </body>
 </html>

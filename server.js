@@ -10,25 +10,22 @@ import axios from 'axios';
 const debug = debugModule('clubverse:server');
 debug('Starting server...');
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-
-dotenv.config({ path: './.env' });
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = 8080;
 
-
 app.get('/api/weather', async (req, res) => {
   try {
     const apiKey = process.env.OPENWEATHER_API_KEY;
-    
+
     const ldhRes = await axios.get(
       `https://api.openweathermap.org/data/2.5/weather?q=Ludhiana,in&appid=${apiKey}&units=metric`
     );
-    
+
     const chdRes = await axios.get(
       `https://api.openweathermap.org/data/2.5/weather?q=Chandigarh,in&appid=${apiKey}&units=metric`
     );
@@ -58,12 +55,12 @@ app.get('/test-debug', (req, res) => {
   res.send('Debugging works!');
 });
 
-
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
+import csurf from 'csurf';
 import logger, { logger as winstonLogger } from './middlewares/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { protect } from './middlewares/auth.js';
@@ -89,12 +86,38 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
+  windowMs: 15 * 60 * 1000,
   max: 100,
   message: 'Too many requests from this IP, please try again later.',
   headers: true
 });
 app.use('/api', limiter);
+
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 5, 
+  message: 'Too many login attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, 
+  max: 3, 
+  message: 'Too many registration attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+
+const csrfProtection = csurf({
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  }
+});
 
 app.use(logger);
 
@@ -110,11 +133,23 @@ app.use('/api', apiRoutes);
 
 app.get('/', (req, res) => {
   const { error, success } = req.query;
-  res.render('login', { error, success });
+  res.render('login', { error, success, csrfToken: req.csrfToken ? req.csrfToken() : null });
 });
 
 app.get('/register', (req, res) => {
-  res.render('register', { error: null });
+  res.render('register', { error: null, csrfToken: req.csrfToken ? req.csrfToken() : null });
+});
+
+
+app.use('/api/login', csrfProtection);
+app.use('/api/register', csrfProtection);
+
+
+app.use((err, req, res, next) => {
+  if (err.code !== 'EBADCSRFTOKEN') return next(err);
+
+
+  res.status(403).json({ error: 'invalid csrf token' });
 });
 
 app.get('/api/dashboard', protect, (req, res) => {
@@ -130,7 +165,6 @@ app.get('/api/dashboard', protect, (req, res) => {
 });
 
 app.get('/api/membership', (req, res) => {
-  // Allow access without authentication for now
   res.render('membership', { error: null, success: null, user: null });
 });
 

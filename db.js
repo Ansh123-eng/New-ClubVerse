@@ -1,16 +1,22 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Sequelize } from 'sequelize';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const connectDB = async () => {
     try {
         console.log('DEBUG MONGO_URI:', process.env.MONGO_URI);
+
         if (!process.env.MONGO_URI) {
             console.log('MONGO_URI not set, skipping MongoDB connection');
             return;
         }
+
         const conn = await mongoose.connect(process.env.MONGO_URI);
         console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
@@ -19,15 +25,14 @@ const connectDB = async () => {
     }
 };
 
-// PostgreSQL connection for reservations and memberships
 const sequelize = new Sequelize(
-    process.env.POSTGRES_DB || 'clubverse_reservations',
-    process.env.POSTGRES_USER || 'postgres',
-    process.env.POSTGRES_PASSWORD || 'password',
+    process.env.PG_DATABASE || 'clubverse_reservations',
+    process.env.PG_USER || 'postgres',
+    process.env.PG_PASSWORD || 'password',
     {
-        host: process.env.POSTGRES_HOST || 'localhost',
+        host: process.env.PG_HOST || 'localhost',
         dialect: 'postgres',
-        logging: false,
+        logging: false
     }
 );
 
@@ -36,13 +41,11 @@ const connectPostgres = async () => {
         await sequelize.authenticate();
         console.log('PostgreSQL Connected for reservations and memberships');
 
-        // Sync models with database
         await sequelize.sync({ alter: true });
         console.log('Database tables synchronized');
     } catch (error) {
         console.error('PostgreSQL connection error:', error);
         console.log('Continuing without PostgreSQL - using in-memory storage for now');
-        // Don't exit process, continue with app
     }
 };
 

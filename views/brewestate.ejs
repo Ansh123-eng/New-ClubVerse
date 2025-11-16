@@ -56,7 +56,7 @@
     box-shadow: 0 5px 15px rgba(254, 0, 131, 0.4);
   }
 
-  /* Hero Section */
+ 
   .hero {
     position: relative;
     height: 100vh;
@@ -140,7 +140,7 @@
     box-shadow: 0 8px 20px rgba(0, 217, 255, 0.4);
   }
 
-  /* About Section */
+
   .section {
     padding: 100px 8%;
     position: relative;
@@ -203,7 +203,7 @@
     transform: scale(1.05);
   }
 
-  /* Gallery Section */
+ 
   .gallery {
     background-color: #0c0c0c;
     position: relative;
@@ -260,7 +260,7 @@
     margin-bottom: 10px;
   }
 
-  /* Features Section */
+
   .features {
     background: linear-gradient(135deg, #0d0d0d 0%, #161616 100%);
   }
@@ -305,7 +305,7 @@
     line-height: 1.6;
   }
 
-  /* Events Section */
+
   .events {
     background-color: #0e0e0e;
   }
@@ -395,7 +395,7 @@
     color: var(--dark-color);
   }
 
-  /* Contact Section */
+ 
   .contact {
     background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('/images/Brew2.avif');
     background-size: cover;
@@ -474,7 +474,6 @@
     border: none;
   }
 
-  /* Animations */
   @keyframes glow {
     0% {
       text-shadow: 0 0 10px rgba(254, 0, 131, 0.8);
@@ -487,7 +486,7 @@
     }
   }
 
-  /* Book Now Button */
+ 
   .book-now-btn {
     position: fixed;
     bottom: 30px;
@@ -512,7 +511,7 @@
     box-shadow: 0 8px 20px rgba(0, 217, 255, 0.4);
   }
 
-  /* Responsive Styles */
+  
   @media (max-width: 992px) {
     .about-content {
       flex-direction: column;
@@ -568,8 +567,7 @@
       width: 180px;
       height: 130px;
       margin-top: 2px;
-      /* margin-right: 220px; */
-      /* margin-left: 10px; */
+   
       margin-top: -15px;
     }
     #menu-nav{
@@ -592,7 +590,7 @@
     .menu {
       display: flex;
       align-items: center;
-      margin-left: 50px; /* space between logo and menu */
+      margin-left: 50px;
     }
 
     .menu ul {
@@ -668,7 +666,7 @@
   font-family: 'Poppins', sans-serif;
 }
 
-/* Updated button styles */
+
 .banner-content a {
   display: inline-block;
   padding: 14px 28px;
@@ -706,7 +704,7 @@
         </div>
     
 
-  <!-- Banner Section -->
+
   <section class="banner-section">
     <div class="banner-overlay"></div>
     <div class="banner-content">
@@ -730,7 +728,7 @@
     </div>
   </section>
 
-  <!-- Gallery Section -->
+ 
   <section id="gallery" class="section gallery">
     <h2 class="section-title">Experience Brewestate</h2>
     <div class="gallery-grid">
@@ -773,7 +771,7 @@
     </div>
   </section>
 
-  <!-- Features Section -->
+
   <section id="features" class="section features">
     <h2 class="section-title">Why Choose Brewestate </h2>
     <div class="features-grid">
@@ -808,7 +806,7 @@
     </div>
   </section>
 
-  <!-- Events Section -->
+
   <section id="events" class="section events">
     <h2 class="section-title">Upcoming Events</h2>
     <div class="event-slider">
@@ -871,7 +869,7 @@
     </div>
   </section>
 
-  <!-- Contact Section -->
+
   <section id="contact" class="section contact">
     <h2 class="section-title">Visit Us</h2>
     <div class="contact-content">
@@ -922,9 +920,8 @@
   </section>
 
 
-  <!-- JavaScript -->
   <script>
-    // Smooth Scroll
+ 
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
         e.preventDefault();
@@ -941,7 +938,7 @@
       });
     });
 
-    // Reveal Animation
+    
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {

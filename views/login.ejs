@@ -134,21 +134,27 @@
       </ul>
     </div>
   </div>
-  <div class="container">
-    <h1>LOGIN</h1>
-    <% if (typeof error !== 'undefined') { %>
-      <div class="error-message" style="color: red; margin-bottom: 15px;">
-        <%= error %>
-      </div>
-    <% } %>
-    <% if (typeof success !== 'undefined') { %>
-      <div class="success-message" style="color: green; margin-bottom: 15px;">
-        <%= success %>
-      </div>
-    <% } %>
-    <div class="plans">
-      <div class="sign-content">
-        <form action="/api/login" method="POST">
+    <div class="container">
+      <h1>LOGIN</h1>
+      <% if (typeof error !== 'undefined') { %>
+        <div class="error-message" style="color: red; margin-bottom: 15px;">
+          <%= error %>
+        </div>
+      <% } %>
+      <% if (typeof lockoutMessage !== 'undefined') { %>
+        <div class="lockout-message" style="color: orange; margin-bottom: 15px; font-weight: bold;">
+          <%= lockoutMessage %>
+        </div>
+      <% } %>
+      <% if (typeof success !== 'undefined') { %>
+        <div class="success-message" style="color: green; margin-bottom: 15px;">
+          <%= success %>
+        </div>
+      <% } %>
+      <div class="plans">
+        <div class="sign-content">
+          <form action="/api/login" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <label for="email"><b>Email:</b></label><br>
           <input
             type="text"

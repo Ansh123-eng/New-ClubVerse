@@ -8,7 +8,6 @@ const protect = async (req, res, next) => {
 
     if (!process.env.JWT_SECRET) {
       console.error('ERROR: JWT_SECRET is not defined in environment variables');
-      // For development, allow access without authentication
       req.user = null;
       return next();
     }
@@ -22,7 +21,6 @@ const protect = async (req, res, next) => {
     }
 
     if (!token) {
-      // For development, allow access without authentication
       req.user = null;
       return next();
     }
@@ -41,7 +39,6 @@ const protect = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Authentication error:', error.message);
-    // For development, allow access without authentication
     req.user = null;
     return next();
   }
