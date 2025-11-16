@@ -129,6 +129,11 @@ app.get('/api/dashboard', protect, (req, res) => {
   });
 });
 
+app.get('/api/membership', (req, res) => {
+  // Allow access without authentication for now
+  res.render('membership', { error: null, success: null, user: null });
+});
+
 const chdBars = [
   { name: "BREWESTATE", image: "/images/brewestate.png", link: "/api/brewestate" },
   { name: "BOULEVARD", image: "/images/boul.png", link: "/api/boulevard" },

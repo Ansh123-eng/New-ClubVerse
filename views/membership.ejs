@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Club Verse - Membership Purchase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link rel="stylesheet" href="/styles/dashbar.css">
+  <style>
+    .membership-form-container {
+      max-width: 600px;
+      margin: 120px auto 50px;
+      padding: 40px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-title {
+      text-align: center;
+      color: #d4af37;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-label {
+      display: block;
+      color: white;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      color: white;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: #d4af37;
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .form-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .form-select {
+      cursor: pointer;
+    }
+
+    .form-select option {
+      background: #1a1a1a;
+      color: white;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(45deg, #d4af37, #ffd700);
+      color: #000;
+      border: none;
+      border-radius: 25px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-bottom: 30px;
+      color: #d4af37;
+      text-decoration: none;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      color: #ffd700;
+      transform: translateX(-5px);
+    }
+
+    .membership-preview {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .membership-preview h3 {
+      color: #d4af37;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .membership-preview p {
+      color: rgba(255, 255, 255, 0.8);
+      text-align: center;
+      margin: 0;
+    }
+
+    .error-message {
+      background: rgba(255, 0, 0, 0.2);
+      color: #ff6b6b;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 0, 0, 0.3);
+      text-align: center;
+    }
+
+    .success-message {
+      background: rgba(0, 255, 0, 0.2);
+      color: #4ecdc4;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(0, 255, 0, 0.3);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loader"></div>
+  </div>
+
+  <div class="floating-menu">
+    <button class="floating-btn" id="backToTop" title="Back to Top">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+    <button class="floating-btn" id="chatBtn" title="Chat with Us">
+      <i class="fas fa-comments"></i>
+    </button>
+  </div>
+
+  <div class="music-controls">
+    <button class="music-btn" id="musicToggle" title="Toggle Music">
+      <i class="fas fa-music"></i>
+    </button>
+    <button class="music-btn" id="soundWaveToggle" title="Sound Visualizer">
+      <i class="fas fa-wave-square"></i>
+    </button>
+  </div>
+
+  <audio id="backgroundMusic" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <div class="chat-widget" id="chatWidget">
+    <div class="chat-header">
+      <span>Club Verse Support</span>
+      <span class="close" id="chatClose">&times;</span>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div style="margin-bottom: 10px; padding: 10px; background: rgba(212, 175, 55, 0.2); border-radius: 10px;">
+        <strong>Club Verse:</strong> Welcome! How can we help you with your membership? 🍸
+      </div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Type your message...">
+      <button id="chatSend"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <nav class="nav" id="navbar">
+    <div class="nav-content">
+      <div class="logo">
+        <img src="/images/club-logo-2.png" alt="Club Verse Logo" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=&#39;http:www.w3.org/2000/svg&#39; viewBox=&#39;0 0 200 100&#39;%3E%3Ctext x=&#39;100&#39; y=&#39;60&#39; font-family=&#39;serif&#39; font-size=&#39;24&#39; text-anchor=&#39;middle&#39; fill=&#39;%23d4af37&#39;%3EClub Verse%3C/text%3E%3C/svg%3E';">
+      </div>
+      <div class="menu">
+        <ul>
+          <li><a href="/api/dashboard">Dashboard</a></li>
+          <li><a href="/api/bar">Bars</a></li>
+          <li><a href="#events">Events</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="/api/weather" class="weather-btn" style="background: linear-gradient(45deg, #d4af37, #ffd700); color: #000; border-radius: 20px; padding: 8px 18px; font-weight: 600; margin-left: 10px;">Weather</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="membership-form-container">
+    <a href="/api/dashboard" class="back-btn">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <h1 class="form-title">Purchase Membership</h1>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="error-message">
+        <i class="fas fa-exclamation-triangle"></i> <%= error %>
+      </div>
+    <% } %>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="success-message">
+        <i class="fas fa-check-circle"></i> <%= success %>
+      </div>
+    <% } %>
+
+    <div class="membership-preview" id="membershipPreview">
+      <h3 id="previewType">Select Membership Type</h3>
+      <p id="previewPeriod">Select Membership Period</p>
+    </div>
+
+    <form id="membershipForm" action="/api/membership" method="POST">
+      <div class="form-group">
+        <label for="name" class="form-label">Full Name</label>
+        <input type="text" id="name" name="name" class="form-input" placeholder="Enter your full name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email address" required>
+      </div>
+
+      <div class="form-group">
+        <label for="phone" class="form-label">Phone Number</label>
+        <input type="tel" id="phone" name="phone" class="form-input" placeholder="Enter your phone number" required>
+      </div>
+
+      <div class="form-group">
+        <label for="membershipType" class="form-label">Membership Type</label>
+        <select id="membershipType" name="membershipType" class="form-select" required>
+          <option value="">Select membership type</option>
+          <option value="gold">Gold - Priority entry, 1 free drink, 10% off</option>
+          <option value="platinum">Platinum - All Gold benefits + guest pass, 15% off</option>
+          <option value="diamond">Diamond - All Platinum benefits + VIP access, 25% off</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="membershipPeriod" class="form-label">Membership Period</label>
+        <select id="membershipPeriod" name="membershipPeriod" class="form-select" required>
+          <option value="">Select membership period</option>
+          <option value="weekly">Weekly - 7 days</option>
+          <option value="monthly">Monthly - 30 days</option>
+          <option value="annually">Annually - 365 days</option>
+        </select>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        <i class="fas fa-credit-card"></i> Purchase Membership
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Loading screen
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      setTimeout(() => {
+        loadingOverlay.classList.add('hidden');
+      }, 1000);
+
+      // Scroll Progress Bar
+      const scrollProgress = document.getElementById('scrollProgress');
+      function updateScrollProgress() {
+        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrollPercent = (scrollTop / scrollHeight) * 100;
+        scrollProgress.style.width = scrollPercent + '%';
+      }
+      window.addEventListener('scroll', updateScrollProgress);
+
+      // Navbar scroll effect
+      const navbar = document.getElementById('navbar');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 100) {
+          navbar.classList.add('scrolled');
+        } else {
+          navbar.classList.remove('scrolled');
+        }
+      });
+
+      // Floating Menu Functions
+      document.getElementById('backToTop').addEventListener('click', function() {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+
+      // Chat Functionality
+      const chatWidget = document.getElementById('chatWidget');
+      const chatMessages = document.getElementById('chatMessages');
+      const chatInput = document.getElementById('chatInput');
+
+      document.getElementById('chatBtn').addEventListener('click', function() {
+        if (chatWidget.style.display === 'none' || !chatWidget.style.display) {
+          chatWidget.style.display = 'flex';
+        } else {
+          chatWidget.style.display = 'none';
+        }
+      });
+
+      document.getElementById('chatClose').addEventListener('click', function() {
+        chatWidget.style.display = 'none';
+      });
+
+      document.getElementById('chatSend').addEventListener('click', sendMessage);
+
+      chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+
+      function sendMessage() {
+        const message = chatInput.value.trim();
+
+        if (message) {
+          // Add user message
+          const userMsg = document.createElement('div');
+          userMsg.style.cssText = 'margin-bottom: 10px; padding: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; text-align: right;';
+          userMsg.innerHTML = '<strong>You:</strong> ' + message;
+          chatMessages.appendChild(userMsg);
+
+          // Auto response
+          setTimeout(() => {
+            const botMsg = document.createElement('div');
+            botMsg.style.cssText = 'margin-bottom: 10px; padding: 10px; background: rgba(212, 175, 55, 0.2); border-radius: 10px;';
+            botMsg.innerHTML = '<strong>Club Verse:</strong> ' + getAutoResponse(message);
+            chatMessages.appendChild(botMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          }, 1000);
+
+          chatInput.value = '';
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      }
+
+      function getAutoResponse(message) {
+        const responses = {
+          'membership': 'You\'re on the right page! Fill out the form above to purchase your membership. ✨',
+          'gold': 'Gold membership includes priority entry, 1 free welcome drink, and 10% off drinks & food! 🥂',
+          'platinum': 'Platinum includes all Gold benefits plus a complimentary guest pass and 15% off! 💎',
+          'diamond': 'Diamond is our premium tier with unlimited VIP entry, 25% off, and exclusive lounge access! 👑',
+          'payment': 'We accept all major credit cards and digital payments. Secure checkout coming soon! 💳',
+          'default': 'Thanks for your interest in Club Verse membership! How else can I help? 🎶'
+        };
+
+        const lowerMessage = message.toLowerCase();
+        for (let key in responses) {
+          if (lowerMessage.includes(key)) {
+            return responses[key];
+          }
+        }
+        return responses.default;
+      }
+
+      // Music Controls
+      const backgroundMusic = document.getElementById('backgroundMusic');
+      const musicToggle = document.getElementById('musicToggle');
+      const soundWaveToggle = document.getElementById('soundWaveToggle');
+      const soundWaves = document.getElementById('soundWaves');
+
+      musicToggle.addEventListener('click', function() {
+        if (backgroundMusic.paused) {
+          backgroundMusic.play();
+          this.innerHTML = '<i class="fas fa-pause"></i>';
+          this.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a24)';
+        } else {
+          backgroundMusic.pause();
+          this.innerHTML = '<i class="fas fa-music"></i>';
+          this.style.background = 'linear-gradient(45deg, #d4af37, #ffd700)';
+        }
+      });
+
+      soundWaveToggle.addEventListener('click', function() {
+        if (soundWaves && (soundWaves.style.display === 'none' || !soundWaves.style.display)) {
+          soundWaves.style.display = 'flex';
+        } else if (soundWaves) {
+          soundWaves.style.display = 'none';
+        }
+      });
+
+      // Membership Preview Update
+      const membershipTypeSelect = document.getElementById('membershipType');
+      const membershipPeriodSelect = document.getElementById('membershipPeriod');
+      const previewType = document.getElementById('previewType');
+      const previewPeriod = document.getElementById('previewPeriod');
+
+      function updatePreview() {
+        const type = membershipTypeSelect.value;
+        const period = membershipPeriodSelect.value;
+
+        if (type) {
+          const typeText = type.charAt(0).toUpperCase() + type.slice(1);
+          previewType.textContent = typeText + ' Membership';
+        } else {
+          previewType.textContent = 'Select Membership Type';
+        }
+
+        if (period) {
+          const periodText = period.charAt(0).toUpperCase() + period.slice(1);
+          previewPeriod.textContent = periodText + ' Plan';
+        } else {
+          previewPeriod.textContent = 'Select Membership Period';
+        }
+      }
+
+      membershipTypeSelect.addEventListener('change', updatePreview);
+      membershipPeriodSelect.addEventListener('change', updatePreview);
+
+      // Form submission with loading
+      const form = document.getElementById('membershipForm');
+      form.addEventListener('submit', function(e) {
+        const submitBtn = form.querySelector('.submit-btn');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        submitBtn.disabled = true;
+      });
+
+      console.log('🎉 Club Verse Membership - Unlock the Night! 🎉');
+    });
+  </script>
+</body>
+</html>
