@@ -9,7 +9,7 @@ import axios from 'axios';
 
 const debug = debugModule('clubverse:server');
 debug('Starting server...');
-
+//234
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
