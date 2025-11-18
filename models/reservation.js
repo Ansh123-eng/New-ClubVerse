@@ -11,7 +11,7 @@ const Reservation = sequelize.define('Reservation', {
   userId: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: () => uuidv4(), // automatically generate UUID
+    defaultValue: () => uuidv4(), 
     field: 'user_id'
   },
   name: {
