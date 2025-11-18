@@ -4,10 +4,21 @@ import { Sequelize } from 'sequelize';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from 'redis';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
+
+const sequelize = new Sequelize(
+    process.env.POSTGRES_DB || 'clubverse', // database name
+    process.env.POSTGRES_USER || 'postgres', // username
+    process.env.POSTGRES_PASSWORD || 'anmol1609@chitkara', // password
+    {
+        host: process.env.POSTGRES_HOST || 'localhost', // host
+        port: process.env.POSTGRES_PORT || 5433,        // port
+        dialect: 'postgres',                            // database dialect
+        logging: false
+    }
+);
 
 const connectDB = async () => {
     try {
@@ -21,21 +32,9 @@ const connectDB = async () => {
         const conn = await mongoose.connect(process.env.MONGO_URI);
         console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
-        console.error(`Error: ${error.message}`);
-        process.exit(1);
+        console.error('MongoDB connection error:', error);
     }
 };
-
-const sequelize = new Sequelize(
-    process.env.POSTGRES_DB || 'clubverse',
-    process.env.POSTGRES_USER || 'postgres',
-    process.env.POSTGRES_PASSWORD || 'anshvohra@2002',
-    {
-        host: process.env.POSTGRES_HOST || 'localhost',
-        dialect: 'postgres',
-        logging: false
-    }
-);
 
 const connectPostgres = async () => {
     try {
