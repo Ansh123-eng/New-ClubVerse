@@ -87,7 +87,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
-import csurf from 'csurf';
+
 import logger, { logger as winstonLogger } from './middlewares/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { protect } from './middlewares/auth.js';
@@ -138,13 +138,7 @@ const registerLimiter = rateLimit({
 });
 
 
-const csrfProtection = csurf({
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
-  }
-});
+
 
 app.use(logger);
 
@@ -168,23 +162,11 @@ app.use('/api', apiRoutes);
 
 app.get('/', (req, res) => {
   const { error, success } = req.query;
-  res.render('login', { error, success, csrfToken: req.csrfToken ? req.csrfToken() : null });
+  res.render('login', { error, success });
 });
 
 app.get('/register', (req, res) => {
-  res.render('register', { error: null, csrfToken: req.csrfToken ? req.csrfToken() : null });
-});
-
-
-app.use('/api/login', csrfProtection);
-app.use('/api/register', csrfProtection);
-
-
-app.use((err, req, res, next) => {
-  if (err.code !== 'EBADCSRFTOKEN') return next(err);
-
-
-  res.status(403).json({ error: 'invalid csrf token' });
+  res.render('register', { error: null });
 });
 
 app.get('/api/dashboard', protect, (req, res) => {

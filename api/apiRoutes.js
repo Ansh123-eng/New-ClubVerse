@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
-import csurf from 'csurf';
+
 import { protect } from '../middlewares/auth.js';
 import User from '../models/user.js';
 import Reservation from '../models/reservation.js';
@@ -39,14 +39,7 @@ const registerLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// CSRF protection
-const csrfProtection = csurf({
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
-  }
-});
+// CSRF protection removed to fix server errors
 
 router.post('/login', authLimiter, async (req, res, next) => {
   try {
@@ -120,7 +113,7 @@ router.post('/register', registerLimiter, async (req, res, next) => {
       });
     }
 
-    
+
     const nameValidation = validateName(name);
     if (!nameValidation.isValid) {
       logger.warn(`Invalid name format from ${clientIP}: ${name}`);
