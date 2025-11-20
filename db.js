@@ -1,77 +1,60 @@
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Sequelize } from 'sequelize';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { createClient } from 'redis';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, '.env') });
+import dotenv from 'dotenv';
 
-const sequelize = new Sequelize(
-    process.env.POSTGRES_DB || 'clubverse', // database name
-    process.env.POSTGRES_USER || 'postgres', // username
-    process.env.POSTGRES_PASSWORD || 'anmol1609@chitkara', // password
-    {
-        host: process.env.POSTGRES_HOST || 'localhost', // host
-        port: process.env.POSTGRES_PORT || 5433,        // port
-        dialect: 'postgres',                            // database dialect
-        logging: false
-    }
-);
+dotenv.config();
 
-const connectDB = async () => {
-    try {
-        console.log('DEBUG MONGO_URI:', process.env.MONGO_URI);
+let redisClient = null;
+const sequelize = new Sequelize({
+  database: process.env.POSTGRES_DB,
+  username: process.env.POSTGRES_USER,
+  password: process.env.POSTGRES_PASSWORD,
+  host: process.env.POSTGRES_HOST,
+  port: process.env.POSTGRES_PORT,
+  dialect: 'postgres',
+  logging: false,
+});
 
-        if (!process.env.MONGO_URI) {
-            console.log('MONGO_URI not set, skipping MongoDB connection');
-            return;
-        }
-
-        const conn = await mongoose.connect(process.env.MONGO_URI);
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
-    } catch (error) {
-        console.error('MongoDB connection error:', error);
-    }
+const connectMongoDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log('MongoDB Connected');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+  }
 };
 
 const connectPostgres = async () => {
-    try {
-        await sequelize.authenticate();
-        console.log('PostgreSQL Connected for reservations and memberships');
-
-        await sequelize.sync({ alter: true });
-        console.log('Database tables synchronized');
-    } catch (error) {
-        console.error('PostgreSQL connection error:', error);
-        console.log('Continuing without PostgreSQL - using in-memory storage for now');
-    }
+  try {
+    await sequelize.authenticate();
+    console.log('PostgreSQL Connected');
+  } catch (error) {
+    console.error('PostgreSQL connection error:', error);
+  }
 };
 
-// Redis client for caching
-let redisClient = null;
-
 const connectRedis = async () => {
-    try {
-        redisClient = createClient({
-            url: process.env.REDIS_URL || 'redis://redis-10894.c8.us-east-1-4.ec2.cloud.redislabs.com:10894',
-            password: process.env.REDIS_PASSWORD
-        });
+  try {
+    redisClient = createClient({
+      url: process.env.REDIS_URL || 'redis://:tC7fn193iUgMdldscwbwF4idP5qSMN5R@redis-11306.c283.us-east-1-4.ec2.cloud.redislabs.com:11306',
+    });
 
-        redisClient.on('error', (err) => {
-            console.error('Redis Client Error:', err);
-        });
+    redisClient.on('error', (err) => {
+      console.error('Redis Client Error:', err);
+    });
 
-        await redisClient.connect();
-        console.log('Redis Connected for caching');
-    } catch (error) {
-        console.error('Redis connection error:', error);
-        console.log('Continuing without Redis - caching disabled');
-    }
+    await redisClient.connect();
+    console.log('Redis Connected for caching');
+  } catch (error) {
+    console.error('Redis connection error:', error);
+  }
 };
 
 const getRedisClient = () => redisClient;
 
-export default connectDB;
+export default connectMongoDB;
 export { sequelize, connectPostgres, connectRedis, getRedisClient };

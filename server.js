@@ -22,6 +22,7 @@ import logger, { logger as winstonLogger } from './middlewares/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { protect } from './middlewares/auth.js';
 import connectDB, { connectPostgres, connectRedis, getRedisClient } from './db.js';
+const redisClient = getRedisClient();
 import apiRoutes from './api/apiRoutes.js';
 
 const debug = debugModule('clubverse:server');
@@ -240,6 +241,10 @@ app.get('/api/membership', (req, res) => {
   res.render('membership', { error: null, success: null, user: null });
 });
 
+app.get('/api/privacy-policy', (req, res) => {
+  res.render('privacy-policy');
+});
+
 const chdBars = [
   { name: "BREWESTATE", image: "/images/brewestate.png", link: "/api/brewestate" },
   { name: "BOULEVARD", image: "/images/boul.png", link: "/api/boulevard" },
@@ -284,7 +289,7 @@ barPages.forEach(page => {
   });
 });
 
-const staticPages = ['faq', 'ourservices', 'contactus'];
+const staticPages = ['faq', 'ourservices', 'contactus', 'privacy-policy'];
 staticPages.forEach(page => {
   app.get(`/api/${page}`, (req, res) => {
     res.render(page);
@@ -302,24 +307,52 @@ app.get('/api/weather', async (req, res) => {
       return res.status(500).json({ error: 'Weather API key not configured' });
     }
 
-    const ldhResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=Ludhiana&appid=${apiKey}&units=metric`);
-    const chdResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=Chandigarh&appid=${apiKey}&units=metric`);
+    // Check Redis for cached weather data
+    let cachedWeather = null;
+    if (redisClient) {
+      try {
+        cachedWeather = await redisClient.get('weather_data');
+        if (cachedWeather) {
+          cachedWeather = JSON.parse(cachedWeather);
+          console.log('Weather data served from Redis cache');
+        }
+      } catch (err) {
+        console.error('Redis cache error:', err);
+      }
+    }
 
-    const ldh = {
-      city: ldhResponse.data.name,
-      temp: Math.round(ldhResponse.data.main.temp),
-      icon: ldhResponse.data.weather[0].icon,
-      condition: ldhResponse.data.weather[0].description
-    };
+    if (!cachedWeather) {
+      const ldhResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=Ludhiana&appid=${apiKey}&units=metric`);
+      const chdResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=Chandigarh&appid=${apiKey}&units=metric`);
 
-    const chd = {
-      city: chdResponse.data.name,
-      temp: Math.round(chdResponse.data.main.temp),
-      icon: chdResponse.data.weather[0].icon,
-      condition: chdResponse.data.weather[0].description
-    };
+      const ldh = {
+        city: ldhResponse.data.name,
+        temp: Math.round(ldhResponse.data.main.temp),
+        icon: ldhResponse.data.weather[0].icon,
+        condition: ldhResponse.data.weather[0].description
+      };
 
-    res.render('weather', { ldh, chd });
+      const chd = {
+        city: chdResponse.data.name,
+        temp: Math.round(chdResponse.data.main.temp),
+        icon: chdResponse.data.weather[0].icon,
+        condition: chdResponse.data.weather[0].description
+      };
+
+      cachedWeather = { ldh, chd, timestamp: new Date().toISOString() };
+
+      // Cache weather data for 30 minutes
+      if (redisClient) {
+        try {
+          await redisClient.setEx('weather_data', 1800, JSON.stringify(cachedWeather));
+          console.log('Weather data cached in Redis');
+        } catch (err) {
+          console.error('Redis set error:', err);
+        }
+      }
+    }
+
+    res.render('weather', { ldh: cachedWeather.ldh, chd: cachedWeather.chd });
   } catch (error) {
     console.error('Weather API error:', error && error.stack ? error.stack : error);
     if (error.response) {

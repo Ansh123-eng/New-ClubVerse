@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Our Services - Club Verse</title>
+  <title>Privacy Policy - Club Verse</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,8 +23,8 @@
       overflow-x: hidden;
     }
 
-    .services-container {
-      max-width: 1200px;
+    .privacy-container {
+      max-width: 1000px;
       margin: 120px auto 80px;
       padding: 0 5%;
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
@@ -36,7 +36,7 @@
       z-index: 2;
     }
 
-    .services-container::before {
+    .privacy-container::before {
       content: '';
       position: absolute;
       top: 0;
@@ -48,12 +48,12 @@
       z-index: -1;
     }
 
-    .services-header {
+    .privacy-header {
       text-align: center;
       margin-bottom: 50px;
     }
 
-    .services-header h1 {
+    .privacy-header h1 {
       font-family: 'Playfair Display', serif;
       font-size: 3rem;
       color: #d4af37;
@@ -61,7 +61,7 @@
       position: relative;
     }
 
-    .services-header h1::after {
+    .privacy-header h1::after {
       content: '';
       position: absolute;
       bottom: -10px;
@@ -72,132 +72,105 @@
       background: linear-gradient(45deg, #d4af37, #ffd700);
     }
 
-    .services-header p {
+    .privacy-header p {
       font-size: 1.1rem;
       color: rgba(255, 255, 255, 0.8);
       line-height: 1.6;
     }
 
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 30px;
-      margin-bottom: 60px;
-    }
-
-    .service-card {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 15px;
-      padding: 30px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      text-align: center;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .service-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
-    }
-
-    .service-card i {
-      font-size: 3rem;
-      color: #d4af37;
-      margin-bottom: 20px;
-    }
-
-    .service-card h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
-      color: #d4af37;
-      margin-bottom: 15px;
-    }
-
-    .service-card p {
-      color: rgba(255, 255, 255, 0.9);
-      line-height: 1.6;
-      font-size: 1rem;
-    }
-
-    .additional-services {
-      text-align: center;
-      margin-bottom: 50px;
-    }
-
-    .additional-services h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.5rem;
-      color: #d4af37;
-      margin-bottom: 10px;
-    }
-
-    .additional-services p {
-      font-size: 1.1rem;
-      color: rgba(255, 255, 255, 0.8);
+    .privacy-section {
       margin-bottom: 40px;
     }
 
-    .additional-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-    }
-
-    .additional-card {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      padding: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      text-align: center;
-      transition: transform 0.3s ease;
-    }
-
-    .additional-card:hover {
-      transform: translateY(-3px);
-    }
-
-    .additional-card i {
-      font-size: 2rem;
+    .privacy-section h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
       color: #d4af37;
+      margin-bottom: 20px;
+      position: relative;
+      padding-left: 30px;
+    }
+
+    .privacy-section h2::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 2px;
+      background: linear-gradient(45deg, #d4af37, #ffd700);
+    }
+
+    .privacy-section p {
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.8;
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+
+    .privacy-section ul {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+
+    .privacy-section li {
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.6;
       margin-bottom: 10px;
     }
 
-    .additional-card h4 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.2rem;
+    .privacy-section li::marker {
       color: #d4af37;
-      margin-bottom: 8px;
     }
 
-    .additional-card p {
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 0.9rem;
+    .contact-info {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 15px;
+      padding: 30px;
+      margin-top: 50px;
+      text-align: center;
+    }
+
+    .contact-info h3 {
+      color: #d4af37;
+      margin-bottom: 20px;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .contact-info p {
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 10px;
+    }
+
+    .contact-info a {
+      color: #ffd700;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .contact-info a:hover {
+      color: #d4af37;
     }
 
     @media (max-width: 768px) {
-      .services-container {
+      .privacy-container {
         padding: 40px 20px;
         margin: 100px auto 60px;
       }
 
-      .services-header h1 {
+      .privacy-header h1 {
         font-size: 2.5rem;
       }
 
-      .services-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-
-      .additional-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 15px;
+      .privacy-section h2 {
+        font-size: 1.5rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="scroll-progress" id="scrollProgress"></div>
-
   <nav class="nav" id="navbar">
     <div class="nav-content">
       <div class="logo">
@@ -215,66 +188,105 @@
     </div>
   </nav>
 
-  <div class="services-container">
-    <div class="services-header">
-      <h1>Our Services</h1>
-      <p>Experience the ultimate nightlife destination where luxury meets entertainment</p>
+  <div class="privacy-container">
+    <div class="privacy-header">
+      <h1>Privacy Policy</h1>
+      <p>Last updated: December 2024</p>
     </div>
 
-    <div class="services-grid">
-      <div class="service-card">
-        <i class="fas fa-music"></i>
-        <h3>Live DJ Nights</h3>
-        <p>Immerse yourself in electrifying beats and rhythms from world-class DJs performing every weekend, creating unforgettable dance experiences.</p>
-      </div>
-      <div class="service-card">
-        <i class="fas fa-cocktail"></i>
-        <h3>Exclusive Bars</h3>
-        <p>Indulge in our signature cocktails and premium drinks crafted by expert mixologists, served in an elegant atmosphere all night long.</p>
-      </div>
-      <div class="service-card">
-        <i class="fas fa-star"></i>
-        <h3>VIP Lounge</h3>
-        <p>Enjoy luxury VIP areas with premium service, exclusive access, and a sophisticated ambiance for an elevated nightlife experience.</p>
-      </div>
+    <div class="privacy-section">
+      <h2>Introduction</h2>
+      <p>Welcome to Club Verse. We are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services.</p>
     </div>
 
-    <div class="additional-services">
-      <h2>Additional Services</h2>
-      <p>Enhance your experience with our premium offerings</p>
+    <div class="privacy-section">
+      <h2>Information We Collect</h2>
+      <h3>Personal Information</h3>
+      <p>We may collect personal information that you provide directly to us, including:</p>
+      <ul>
+        <li>Name and contact information (email, phone number)</li>
+        <li>Membership details and preferences</li>
+        <li>Reservation and booking information</li>
+        <li>Payment information for transactions</li>
+        <li>Communications you send to us</li>
+      </ul>
 
-      <div class="additional-grid">
-        <div class="additional-card">
-          <i class="fas fa-utensils"></i>
-          <h4>Gourmet Dining</h4>
-          <p>Fine dining with international cuisine</p>
-        </div>
-        <div class="additional-card">
-          <i class="fas fa-camera"></i>
-          <h4>Event Photography</h4>
-          <p>Professional photography services</p>
-        </div>
-        <div class="additional-card">
-          <i class="fas fa-car"></i>
-          <h4>Valet Parking</h4>
-          <p>Convenient and secure parking</p>
-        </div>
-        <div class="additional-card">
-          <i class="fas fa-shield-alt"></i>
-          <h4>Security</h4>
-          <p>24/7 professional security</p>
-        </div>
-        <div class="additional-card">
-          <i class="fas fa-wifi"></i>
-          <h4>Wi-Fi Access</h4>
-          <p>High-speed internet connectivity</p>
-        </div>
-        <div class="additional-card">
-          <i class="fas fa-smoking-ban"></i>
-          <h4>Smoke-Free Zones</h4>
-          <p>Designated non-smoking areas</p>
-        </div>
-      </div>
+      <h3>Automatically Collected Information</h3>
+      <p>When you visit our website, we may automatically collect certain information, including:</p>
+      <ul>
+        <li>IP address and location data</li>
+        <li>Browser type and version</li>
+        <li>Device information</li>
+        <li>Pages visited and time spent on our site</li>
+        <li>Referral sources</li>
+      </ul>
+    </div>
+
+    <div class="privacy-section">
+      <h2>How We Use Your Information</h2>
+      <p>We use the information we collect for various purposes, including:</p>
+      <ul>
+        <li>Providing and maintaining our services</li>
+        <li>Processing reservations and memberships</li>
+        <li>Communicating with you about our services</li>
+        <li>Improving our website and services</li>
+        <li>Personalizing your experience</li>
+        <li>Ensuring security and preventing fraud</li>
+        <li>Complying with legal obligations</li>
+      </ul>
+    </div>
+
+    <div class="privacy-section">
+      <h2>Information Sharing and Disclosure</h2>
+      <p>We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy:</p>
+      <ul>
+        <li>With service providers who assist us in operating our website</li>
+        <li>To comply with legal obligations</li>
+        <li>To protect our rights and prevent fraud</li>
+        <li>In connection with a business transfer</li>
+      </ul>
+    </div>
+
+    <div class="privacy-section">
+      <h2>Data Security</h2>
+      <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet is 100% secure.</p>
+    </div>
+
+    <div class="privacy-section">
+      <h2>Your Rights</h2>
+      <p>You have the right to:</p>
+      <ul>
+        <li>Access the personal information we hold about you</li>
+        <li>Correct inaccurate or incomplete information</li>
+        <li>Request deletion of your personal information</li>
+        <li>Object to or restrict certain processing</li>
+        <li>Data portability</li>
+      </ul>
+    </div>
+
+    <div class="privacy-section">
+      <h2>Cookies and Tracking Technologies</h2>
+      <p>We use cookies and similar technologies to enhance your experience on our website. You can control cookie settings through your browser preferences.</p>
+    </div>
+
+    
+
+    <div class="privacy-section">
+      <h2>Children's Privacy</h2>
+      <p>Our services are not intended for children under 18. We do not knowingly collect personal information from children under 18.</p>
+    </div>
+
+    <div class="privacy-section">
+      <h2>Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date.</p>
+    </div>
+
+    <div class="contact-info">
+      <h3>Questions About Our Privacy Policy?</h3>
+      <p>If you have any questions about this Privacy Policy, please contact us:</p>
+      <p><strong>Email:</strong> <a href="mailto:privacy@clubverse.com">privacy@clubverse.com</a></p>
+      <p><strong>Phone:</strong> <a href="tel:+911234567890">+91 1234567890</a></p>
+      <p><strong>Address:</strong> Sector 17, Chandigarh</p>
     </div>
   </div>
 
@@ -321,16 +333,6 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Scroll Progress Bar
-      const scrollProgress = document.getElementById('scrollProgress');
-      function updateScrollProgress() {
-        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrollPercent = (scrollTop / scrollHeight) * 100;
-        scrollProgress.style.width = scrollPercent + '%';
-      }
-      window.addEventListener('scroll', updateScrollProgress);
-
       // Navbar scroll effect
       const navbar = document.getElementById('navbar');
       window.addEventListener('scroll', () => {
