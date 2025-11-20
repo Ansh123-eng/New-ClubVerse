@@ -71,7 +71,7 @@ const Membership = sequelize.define('Membership', {
 });
 
 // Calculate end date and pricing based on type and period
-Membership.beforeCreate(async (membership) => {
+Membership.beforeValidate(async (membership) => {
   const startDate = new Date(membership.startDate);
   let endDate;
 

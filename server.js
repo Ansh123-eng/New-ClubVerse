@@ -28,13 +28,13 @@ const debug = debugModule('clubverse:server');
 debug('Starting server...');
 
 const __filename = fileURLToPath(import.meta.url);
-const _dirname = dirname(_filename);
+const __dirname = dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
-const HTTP_PORT = process.env.HTTP_PORT ? Number(process.env.HTTP_PORT) : 80;
-const HTTPS_PORT = process.env.HTTPS_PORT ? Number(process.env.HTTPS_PORT) : 443;
+const HTTP_PORT = process.env.HTTP_PORT ? Number(process.env.HTTP_PORT) : 8080;
+const HTTPS_PORT = process.env.HTTPS_PORT ? Number(process.env.HTTPS_PORT) : 8443;
 
 // ====== MIDDLEWARES ======
 app.set('view engine', 'ejs');
@@ -156,13 +156,14 @@ try {
   // HTTPS SERVER
   httpsServer = https.createServer(sslOptions, app);
   httpsServer.listen(HTTPS_PORT, () => {
-    winstonLogger.info(`HTTPS Server running at https://localhost`);
+    winstonLogger.info(`HTTPS Server running at https://localhost:${HTTPS_PORT}`);
   });
 
   // HTTP → HTTPS REDIRECT
   const httpApp = express();
   httpApp.use((req, res) => {
-    res.redirect(`https://${req.headers.host}${req.url}`);
+    const hostWithoutPort = req.headers.host.replace(/:\d+$/, '');
+    res.redirect(`https://${hostWithoutPort}:${HTTPS_PORT}${req.url}`);
   });
   http.createServer(httpApp).listen(HTTP_PORT, () => {
     winstonLogger.info(`HTTP Server redirecting to HTTPS`);
@@ -293,8 +294,11 @@ staticPages.forEach(page => {
 // Weather route
 app.get('/api/weather', async (req, res) => {
   try {
-    const apiKey = process.env.OPENWEATHERMAP_API_KEY;
+    console.log('Received /api/weather request from', req.ip || req.connection.remoteAddress);
+    const apiKey = process.env.OPENWEATHER_API_KEY || process.env.OPENWEATHERMAP_API_KEY;
+    console.log('OPENWEATHER_API_KEY present?', !!apiKey);
     if (!apiKey) {
+      console.error('OPENWEATHER_API_KEY environment variable is missing');
       return res.status(500).json({ error: 'Weather API key not configured' });
     }
 
@@ -317,7 +321,11 @@ app.get('/api/weather', async (req, res) => {
 
     res.render('weather', { ldh, chd });
   } catch (error) {
-    console.error('Weather API error:', error);
+    console.error('Weather API error:', error && error.stack ? error.stack : error);
+    if (error.response) {
+      console.error('Weather API response status:', error.response.status);
+      console.error('Weather API response data:', error.response.data);
+    }
     res.status(500).json({ error: 'Failed to fetch weather data' });
   }
 });
