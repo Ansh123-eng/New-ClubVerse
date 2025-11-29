@@ -254,6 +254,13 @@ router.post('/reservations', async (req, res) => {
 
 router.post('/membership', async (req, res) => {
   try {
+    // Decode token to get authenticated user
+    const decoded = jwt.verify(
+      req.cookies.token,
+      process.env.JWT_SECRET || 'your_jwt_secret'
+    );
+    req.user = decoded;
+
     const { name, email, phone, membershipType, membershipPeriod } = req.body;
 
     if (!name || !email || !phone || !membershipType || !membershipPeriod) {
@@ -306,9 +313,10 @@ router.post('/membership', async (req, res) => {
 
     // Try to save membership to PostgreSQL database, fallback to in-memory if DB not available
     let membership;
+    let useInMemory = false;
     try {
       membership = await Membership.create({
-        userId: req.user ? req.user.id : uuidv4(), // Use authenticated user ID or generate new UUID
+        userId: req.user.id, // Use authenticated user ID from JWT token
         name,
         email,
         phone,
@@ -319,6 +327,7 @@ router.post('/membership', async (req, res) => {
     } catch (dbError) {
       console.error('Membership DB error:', dbError);
       console.log('Database not available, using in-memory storage for membership');
+      useInMemory = true;
       // Create in-memory membership object
       const startDate = new Date();
       let endDate = new Date(startDate);
@@ -343,7 +352,7 @@ router.post('/membership', async (req, res) => {
 
       membership = {
         id: uuidv4(),
-        userId: req.user ? req.user.id : uuidv4(),
+        userId: req.user.id,
         name,
         email,
         phone,
@@ -358,6 +367,12 @@ router.post('/membership', async (req, res) => {
         updatedAt: new Date(),
         toDateString: function() { return this.endDate.toDateString(); }
       };
+
+      // Store in in-memory array for dashboard access
+      if (!global.inMemoryMemberships) {
+        global.inMemoryMemberships = [];
+      }
+      global.inMemoryMemberships.push(membership);
     }
 
     const membershipDetails = {

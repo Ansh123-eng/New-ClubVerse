@@ -911,7 +911,13 @@
       gap: 15px;
       margin-top: 20px;
     }
-
+    #userAccountBtn{
+      margin-top: -20%;
+    }
+    #userAccountBtn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+    }
     .social-links a {
       width: 45px;
       height: 45px;
@@ -985,6 +991,15 @@
     .fade-in.visible {
       opacity: 1;
       transform: translateY(0);
+    }
+
+    .user-account-btn {
+      transition: all 0.3s ease;
+    }
+
+    .user-account-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
     }
 
     /* Responsive Design */

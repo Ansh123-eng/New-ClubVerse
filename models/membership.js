@@ -11,7 +11,6 @@ const Membership = sequelize.define('Membership', {
   userId: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: () => uuidv4(),
     field: 'user_id'
   },
   name: {

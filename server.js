@@ -24,6 +24,7 @@ import { protect } from './middlewares/auth.js';
 import connectDB, { connectPostgres, connectRedis, getRedisClient } from './db.js';
 const redisClient = getRedisClient();
 import apiRoutes from './api/apiRoutes.js';
+import Membership from './models/membership.js';
 
 const debug = debugModule('clubverse:server');
 debug('Starting server...');
@@ -204,12 +205,52 @@ function decodeTokenFromRequest(req) {
 }
 
 // ====== DASHBOARD route that populates req.user if token present ======
-app.get('/api/dashboard', (req, res) => {
+app.get('/api/dashboard', async (req, res) => {
   // Attempt to decode token and attach to req.user
   const decoded = decodeTokenFromRequest(req);
   if (decoded) {
     // If your token stores user as { id, email, name } or similar, adapt accordingly.
     req.user = decoded;
+
+    // Fetch active membership for the user
+    try {
+      const activeMembership = await Membership.findOne({
+        where: {
+          userId: req.user.id,
+          status: 'active'
+        },
+        order: [['created_at', 'DESC']] // Get the most recent active membership
+      });
+
+      if (activeMembership) {
+        req.user.membership = {
+          type: activeMembership.membershipType.charAt(0).toUpperCase() + activeMembership.membershipType.slice(1),
+          startDate: activeMembership.startDate,
+          endDate: activeMembership.endDate
+        };
+      } else {
+        // Check in-memory storage if database query returns nothing
+        const inMemoryMembership = global.inMemoryMemberships?.find(m => m.userId === req.user.id && m.status === 'active');
+        if (inMemoryMembership) {
+          req.user.membership = {
+            type: inMemoryMembership.membershipType.charAt(0).toUpperCase() + inMemoryMembership.membershipType.slice(1),
+            startDate: inMemoryMembership.startDate,
+            endDate: inMemoryMembership.endDate
+          };
+        }
+      }
+    } catch (membershipError) {
+      winstonLogger.warn('Error fetching membership data from database:', membershipError);
+      // Fallback to in-memory storage if database fails
+      const inMemoryMembership = global.inMemoryMemberships?.find(m => m.userId === req.user.id && m.status === 'active');
+      if (inMemoryMembership) {
+        req.user.membership = {
+          type: inMemoryMembership.membershipType.charAt(0).toUpperCase() + inMemoryMembership.membershipType.slice(1),
+          startDate: inMemoryMembership.startDate,
+          endDate: inMemoryMembership.endDate
+        };
+      }
+    }
   } else {
     req.user = null;
   }

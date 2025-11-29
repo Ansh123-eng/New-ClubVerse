@@ -17,14 +17,7 @@
     <div class="loader"></div>
   </div>
 
-  <div class="floating-menu">
-    <button class="floating-btn" id="backToTop" title="Back to Top">
-      <i class="fas fa-arrow-up"></i>
-    </button>
-    <button class="floating-btn" id="chatBtn" title="Chat with Us">
-      <i class="fas fa-comments"></i>
-    </button>
-  </div>
+
 
   <div class="music-controls">
     <button class="music-btn" id="musicToggle" title="Toggle Music">
@@ -90,6 +83,47 @@
     </div>
   </div>
 
+  <!-- User Account Modal -->
+  <div id="userAccountModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="userModalClose">&times;</span>
+      <h2 style="color: #d4af37; margin-bottom: 20px;">User Account</h2>
+      <div style="text-align: center;">
+        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(45deg, #d4af37, #ffd700); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 600; color: #000; margin: 0 auto 20px;">
+          <% if (user && user.email) { %>
+            <%= user.email.charAt(0).toUpperCase() %>
+          <% } else { %>
+            U
+          <% } %>
+        </div>
+        <% if (user && user.name) { %>
+          <h3 style="color: white; margin-bottom: 10px;"><%= user.name %></h3>
+        <% } %>
+        <% if (user && user.email) { %>
+          <p style="color: rgba(255,255,255,0.8); margin-bottom: 20px;"><%= user.email %></p>
+        <% } %>
+        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+          <h4 style="color: #d4af37; margin-bottom: 15px;">Account Information</h4>
+          <p style="color: rgba(255,255,255,0.9); margin: 5px 0;"><strong>Status:</strong> Active Member</p>
+          <% if (user && user.membership && user.membership.type) { %>
+            <p style="color: rgba(255,255,255,0.9); margin: 5px 0;"><strong>Membership:</strong> <%= user.membership.type %></p>
+            <% if (user.membership.startDate) { %>
+              <p style="color: rgba(255,255,255,0.9); margin: 5px 0;"><strong>Membership Start:</strong> <%= new Date(user.membership.startDate).toLocaleDateString() %></p>
+            <% } %>
+            <% if (user.membership.endDate) { %>
+              <p style="color: rgba(255,255,255,0.9); margin: 5px 0;"><strong>Membership End:</strong> <%= new Date(user.membership.endDate).toLocaleDateString() %></p>
+            <% } %>
+          <% } else { %>
+            <p style="color: rgba(255,255,255,0.9); margin: 5px 0;"><strong>Membership Status:</strong> No active membership yet</p>
+          <% } %>
+        </div>
+        <button onclick="window.location.href='/'" style="width: 100%; padding: 15px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 25px; font-weight: 600; cursor: pointer;">
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+
   <nav class="nav" id="navbar">
     <div class="nav-content">
       <div class="logo">
@@ -101,7 +135,15 @@
           <li><a href="/api/bar">Bars</a></li>
           <li><a href="#events">Events</a></li>
           <li><a href="#contact">Contact</a></li>
-          <li><a href="/api/weather" class="weather-btn" style="background: linear-gradient(45deg, #d4af37, #ffd700); color: #000; border-radius: 20px; padding: 8px 18px; font-weight: 600; margin-left: 10px;">Weather</a></li>
+          <li>
+            <button id="userAccountBtn" class="user-account-btn" style="background: linear-gradient(45deg, #d4af37, #ffd700); color: #000; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; cursor: pointer; margin-left: 10px;">
+              <% if (user && user.email) { %>
+                <%= user.email.charAt(0).toUpperCase() %>
+              <% } else { %>
+                U
+              <% } %>
+            </button>
+          </li>
         </ul>
       </div>
     </div>
@@ -273,7 +315,7 @@
         <span class="quote">"</span>
         <p>ClubVerse is my new go-to for finding exclusive social events. It's like having a personal club concierge that never sleeps!</p>
         <div class="testimonial-author">
-          <img src="/images/rohan-khurana.webp" alt="Rohan Khurana" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 100 100&#39;%3E%3Ccircle cx=&#39;50&#39; cy=&#39;50&#39; r=&#39;40&#39; fill=&#x23;d4af37;/%3E%3Ctext x=&#39;50&#39; y=&#39;60&#39; font-family=&#39;serif&#39; font-size=&#39;20&#39; text-anchor=&#39;middle&#39; fill=&#39;black&#39;%3ERK%3C/text%3E%3C/svg%3E';">
+          <img src="/images/rohan-khurana.webp" alt="Rohan Khurana" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 100 100&#39;%3E%3Ccircle cx=&#39;50&#39; cy=&#39;50&#39; r=&#39;40&#39; fill=&#39;%23d4af37&#39;/%3E%3Ctext x=&#39;50&#39; y=&#39;60&#39; font-family=&#39;serif&#39; font-size=&#39;20&#39; text-anchor=&#39;middle&#39; fill=&#39;black&#39;%3ERK%3C/text%3E%3C/svg%3E';">
           <strong>ROHAN KHURANA</strong>
         </div>
       </div>
@@ -382,81 +424,7 @@
         });
       });
 
-      // Floating Menu Functions
-      document.getElementById('backToTop').addEventListener('click', function() {
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth'
-        });
-      });
 
-      // Chat Functionality
-      const chatWidget = document.getElementById('chatWidget');
-      const chatMessages = document.getElementById('chatMessages');
-      const chatInput = document.getElementById('chatInput');
-
-      document.getElementById('chatBtn').addEventListener('click', function() {
-        if (chatWidget.style.display === 'none' || !chatWidget.style.display) {
-          chatWidget.style.display = 'flex';
-        } else {
-          chatWidget.style.display = 'none';
-        }
-      });
-
-      document.getElementById('chatClose').addEventListener('click', function() {
-        chatWidget.style.display = 'none';
-      });
-
-      document.getElementById('chatSend').addEventListener('click', sendMessage);
-
-      chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          sendMessage();
-        }
-      });
-
-      function sendMessage() {
-        const message = chatInput.value.trim();
-        
-        if (message) {
-          // Add user message
-          const userMsg = document.createElement('div');
-          userMsg.style.cssText = 'margin-bottom: 10px; padding: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; text-align: right;';
-          userMsg.innerHTML = '<strong>You:</strong> ' + message;
-          chatMessages.appendChild(userMsg);
-          
-          // Auto response
-          setTimeout(() => {
-            const botMsg = document.createElement('div');
-            botMsg.style.cssText = 'margin-bottom: 10px; padding: 10px; background: rgba(212, 175, 55, 0.2); border-radius: 10px;';
-            botMsg.innerHTML = '<strong>Club Verse:</strong> ' + getAutoResponse(message);
-            chatMessages.appendChild(botMsg);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-          }, 1000);
-          
-          chatInput.value = '';
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-      }
-
-      function getAutoResponse(message) {
-        const responses = {
-          'reservation': 'You can make a reservation using our floating menu button or call us at +91 1234567890! 📞',
-          'membership': 'Check out our Gold, Platinum, and Diamond membership tiers above! Each offers amazing benefits! ✨',
-          'events': 'We have amazing upcoming events including Live Parmish Verma! Check the events section! 🎵',
-          'hours': 'We are open Monday-Sunday, 6 PM - 2 AM. The party never stops! 🌙',
-          'location': 'Find us in Sector 17, Chandigarh - the heart of the nightlife scene! 📍',
-          'default': 'Thanks for reaching out! Our team will get back to you soon. Enjoy the music! 🎶'
-        };
-        
-        const lowerMessage = message.toLowerCase();
-        for (let key in responses) {
-          if (lowerMessage.includes(key)) {
-            return responses[key];
-          }
-        }
-        return responses.default;
-      }
 
       // Music Controls Fix
       const backgroundMusic = document.getElementById('backgroundMusic');
@@ -537,6 +505,26 @@
         const modal = document.getElementById('reservationModal');
         if (e.target === modal) {
           modal.style.display = 'none';
+        }
+      });
+
+      // User Account Modal Functionality
+      const userAccountBtn = document.getElementById('userAccountBtn');
+      const userAccountModal = document.getElementById('userAccountModal');
+      const userModalClose = document.getElementById('userModalClose');
+
+      userAccountBtn.addEventListener('click', function() {
+        userAccountModal.style.display = 'block';
+      });
+
+      userModalClose.addEventListener('click', function() {
+        userAccountModal.style.display = 'none';
+      });
+
+      // Close user account modal when clicking outside
+      window.addEventListener('click', function(e) {
+        if (e.target === userAccountModal) {
+          userAccountModal.style.display = 'none';
         }
       });
 
