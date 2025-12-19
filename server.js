@@ -22,7 +22,7 @@ import logger, { logger as winstonLogger } from './middlewares/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { protect } from './middlewares/auth.js';
 import connectDB, { connectPostgres, connectRedis, getRedisClient } from './db.js';
-const redisClient = getRedisClient();
+let redisClient;
 import apiRoutes from './api/apiRoutes.js';
 import Membership from './models/membership.js';
 
@@ -143,9 +143,10 @@ app.use((err, req, res, next) => {
 // ====== DATABASE CONNECTIONS ======
 winstonLogger.info("DEBUG MONGO_URI:", { mongoUri: process.env.MONGO_URI });
 
-connectDB();
-connectPostgres();
-connectRedis();
+await connectDB();
+await connectPostgres();
+await connectRedis();
+redisClient = getRedisClient();
 
 // ====== HTTPS SETUP ======
 let httpsServer;

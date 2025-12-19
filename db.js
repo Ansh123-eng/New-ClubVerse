@@ -40,17 +40,20 @@ const connectPostgres = async () => {
 const connectRedis = async () => {
   try {
     redisClient = createClient({
-      url: process.env.REDIS_URL || 'redis://:tC7fn193iUgMdldscwbwF4idP5qSMN5R@redis-11306.c283.us-east-1-4.ec2.cloud.redislabs.com:11306',
+      url: process.env.REDIS_URL || 'redis://:8mINCf66aVgm0TrKAWwYOPHHBk4sHDWH@redis-16018.c266.us-east-1-3.ec2.cloud.redislabs.com:16018',
     });
 
     redisClient.on('error', (err) => {
-      console.error('Redis Client Error:', err);
+      // Suppress Redis errors to avoid log spam if Redis is not available
+      // console.error('Redis Client Error:', err);
     });
 
     await redisClient.connect();
     console.log('Redis Connected for caching');
   } catch (error) {
-    console.error('Redis connection error:', error);
+    // Redis connection failed, set to null and continue without caching
+    redisClient = null;
+    console.warn('Redis not available, caching disabled');
   }
 };
 

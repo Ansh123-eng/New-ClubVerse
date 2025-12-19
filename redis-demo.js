@@ -2,7 +2,7 @@ import { createClient } from 'redis';
 
 async function demoRedis() {
   const redisClient = createClient({
-    url: process.env.REDIS_URL || 'redis://:tC7fn193iUgMdldscwbwF4idP5qSMN5R@redis-11306.c283.us-east-1-4.ec2.cloud.redislabs.com:11306',
+    url: process.env.REDIS_URL || 'redis://:8mINCf66aVgm0TrKAWwYOPHHBk4sHDWH@redis-16018.c266.us-east-1-3.ec2.cloud.redislabs.com:16018',
   });
 
   redisClient.on('error', (err) => {
