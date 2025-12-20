@@ -100,16 +100,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// STATIC FILES WITH CACHE
-app.use(express.static(path.join(__dirname, 'public'), {
-  setHeaders: (res, path) => {
-    if (path.endsWith('.css') || path.endsWith('.js')) {
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
-    } else if (path.match(/\.(png|jpg|jpeg|gif|ico|svg|webp)$/)) {
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-    }
-  }
-}));
+// STATIC FILES WITHOUT CACHE
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ====== ROOT ROUTE ======
 app.get('/', (req, res) => {
@@ -121,10 +113,16 @@ app.use('/api', apiRoutes);
 
 // LOGIN & REGISTER ROUTES WITH CSRF
 app.get('/login', csrfProtection, (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.render('login', { csrfToken: req.csrfToken() });
 });
 
 app.get('/register', csrfProtection, (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.render('register', { error: null, csrfToken: req.csrfToken() });
 });
 
@@ -271,15 +269,24 @@ app.get('/api/dashboard', async (req, res) => {
   }
 
   // Otherwise render dashboard EJS view (server-rendered)
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.render('dashboard', { instaImages, user: req.user });
 });
 
 // ====== OTHER PAGES (example kept intact) ======
 app.get('/api/membership', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.render('membership', { error: null, success: null, user: null });
 });
 
 app.get('/api/privacy-policy', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.render('privacy-policy');
 });
 
@@ -301,6 +308,9 @@ app.get('/api/bar', (req, res) => {
   // attach user if token present
   const decoded = decodeTokenFromRequest(req);
   req.user = decoded || null;
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.render('baars', { chdBars, ldhBars, user: req.user });
 });
 
@@ -312,10 +322,16 @@ const team = [
 app.get('/api/team', (req, res) => {
   const decoded = decodeTokenFromRequest(req);
   req.user = decoded || null;
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.render('team', { team, user: req.user });
 });
 
 app.get('/api/reserve-table', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.sendFile(path.join(__dirname, 'views', 'reservation.html'));
 });
 
@@ -323,6 +339,9 @@ const barPages = ['brewestate', 'boulevard', 'kalaghoda', 'mobe', 'paara', 'rome
 barPages.forEach(page => {
   app.get(`/api/${page}`, (req, res) => {
     req.user = decodeTokenFromRequest(req) || null;
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.render(page, { user: req.user });
   });
 });
@@ -330,6 +349,9 @@ barPages.forEach(page => {
 const staticPages = ['faq', 'ourservices', 'contactus', 'privacy-policy'];
 staticPages.forEach(page => {
   app.get(`/api/${page}`, (req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.render(page);
   });
 });
@@ -337,6 +359,11 @@ staticPages.forEach(page => {
 // Weather route
 app.get('/api/weather', async (req, res) => {
   try {
+    // Prevent HTML page caching
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     console.log('Received /api/weather request from', req.ip || req.connection.remoteAddress);
     const apiKey = process.env.OPENWEATHER_API_KEY || process.env.OPENWEATHERMAP_API_KEY;
     console.log('OPENWEATHER_API_KEY present?', !!apiKey);

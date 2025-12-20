@@ -92,5 +92,5 @@ export const hashResetToken = (token) => {
 };
 
 export const getClientIP = (req) => {
-    return req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
+    return req.ip || (req.connection && req.connection.remoteAddress) || (req.socket && req.socket.remoteAddress) || 'unknown';
 };

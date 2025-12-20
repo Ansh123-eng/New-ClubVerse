@@ -327,15 +327,8 @@
       <h2>Glimpses of Club Life</h2>
       <p>Experience the exclusivity and luxury that defines membership at Club Verse</p>
     </div>
-    <div class="instagram-grid">
-      <% instaImages.forEach(image => { %>
-        <div class="instagram-item">
-          <img src="/images/<%= image %>" alt="Instagram Post <%= image %>">
-          <div class="instagram-overlay">
-            <span class="instagram-icon">♥</span>
-          </div>
-        </div>
-      <% }) %>
+    <div class="instagram-grid" id="instagramGrid">
+      <!-- Images will be loaded dynamically by JavaScript -->
     </div>
   </section>
 
@@ -382,13 +375,87 @@
     </div>
   </footer>
 
+  <script type="application/json" id="userData">
+    <%- JSON.stringify({
+      user: typeof user !== 'undefined' && user ? user : null,
+      instaImages: instaImages || [],
+      pageLoaded: true
+    }) %>
+  </script>
+
   <script>
+    // Client-side caching for dashboard data
+    class DashboardCache {
+      constructor() {
+        this.cacheKey = 'dashboard_cache';
+        this.cacheExpiryKey = 'dashboard_cache_expiry';
+        this.cacheDuration = 30 * 60 * 1000; // 30 minutes in milliseconds
+      }
+
+      // Cache dashboard data
+      setCache(data) {
+        try {
+          const cacheData = {
+            ...data,
+            timestamp: Date.now()
+          };
+          localStorage.setItem(this.cacheKey, JSON.stringify(cacheData));
+          localStorage.setItem(this.cacheExpiryKey, (Date.now() + this.cacheDuration).toString());
+          console.log('Dashboard data cached successfully');
+        } catch (error) {
+          console.error('Error caching dashboard data:', error);
+        }
+      }
+
+      // Get cached dashboard data
+      getCache() {
+        try {
+          const expiry = localStorage.getItem(this.cacheExpiryKey);
+          if (!expiry || Date.now() > parseInt(expiry)) {
+            this.clearCache();
+            return null;
+          }
+
+          const cachedData = localStorage.getItem(this.cacheKey);
+          if (cachedData) {
+            const parsedData = JSON.parse(cachedData);
+            console.log('Dashboard data loaded from cache');
+            return parsedData;
+          }
+        } catch (error) {
+          console.error('Error retrieving cached dashboard data:', error);
+          this.clearCache();
+        }
+        return null;
+      }
+
+      // Clear cache
+      clearCache() {
+        localStorage.removeItem(this.cacheKey);
+        localStorage.removeItem(this.cacheExpiryKey);
+        console.log('Dashboard cache cleared');
+      }
+
+      // Check if cache is valid
+      isCacheValid() {
+        const expiry = localStorage.getItem(this.cacheExpiryKey);
+        return expiry && Date.now() <= parseInt(expiry);
+      }
+    }
+
+    const dashboardCache = new DashboardCache();
+
     document.addEventListener('DOMContentLoaded', function() {
       // Loading screen
       const loadingOverlay = document.getElementById('loadingOverlay');
       setTimeout(() => {
         loadingOverlay.classList.add('hidden');
       }, 1000);
+
+      // Cache dashboard data on page load
+      const userData = JSON.parse(document.getElementById('userData').textContent);
+
+      dashboardCache.setCache(userData);
 
       // Scroll Progress Bar
       const scrollProgress = document.getElementById('scrollProgress');
@@ -547,34 +614,44 @@
       });
 
       // Load Instagram images with better error handling
+      
       const instaImages = [
-        'club1.jpg', 'club2.jpg', 'club3.jpg', 'club4.jpg', 
-        'club5.jpg', 'club6.jpg', 'club7.jpg', 'club8.jpg'
-      ];
+    'food.jpg', 'drink.jpg', 'pizza.jpg', 'beerr.avif',
+    'hand.png', 'taco.png',
+    'drum.png', 'wine.png'
+  ];
       
       function loadInstagramImages() {
-        const instagramGrid = document.getElementById('instagramGrid');
-        
+        const instagramGrid = document.querySelector('.instagram-grid');
+
+        if (!instagramGrid) {
+          console.warn('Instagram grid element not found');
+          return;
+        }
+
+        // Clear existing content to avoid duplication
+        instagramGrid.innerHTML = '';
+
         instaImages.forEach((image, index) => {
           const instagramItem = document.createElement('div');
           instagramItem.className = 'instagram-item';
-          
+
           instagramItem.innerHTML = `
-            <img src="/images/${image}" 
-                 alt="Club Life ${index + 1}" 
+            <img src="/images/${image}"
+                 alt="Club Life ${index + 1}"
                  onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 200 200\\'%3E%3Crect fill=\\'%23${getRandomColor()}\\' width=\\'200\\' height=\\'200\\'/%3E%3Ctext x=\\'100\\' y=\\'90\\' font-family=\\'serif\\' font-size=\\'14\\' text-anchor=\\'middle\\' fill=\\'white\\'%3EClub%3C/text%3E%3Ctext x=\\'100\\' y=\\'110\\' font-family=\\'serif\\' font-size=\\'14\\' text-anchor=\\'middle\\' fill=\\'white\\'%3ELife%3C/text%3E%3C/svg%3E';">
             <div class="instagram-overlay">
               <span class="instagram-icon"><i class="fas fa-heart"></i></span>
             </div>
           `;
-          
+
           instagramGrid.appendChild(instagramItem);
-          
+
           // Apply hover effects to new items
           instagramItem.addEventListener('mouseenter', function() {
             this.style.transform = 'scale(1.05) rotate(2deg)';
           });
-          
+
           instagramItem.addEventListener('mouseleave', function() {
             this.style.transform = 'scale(1) rotate(0deg)';
           });
