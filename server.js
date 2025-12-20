@@ -21,7 +21,7 @@ import jwt from 'jsonwebtoken';
 import logger, { logger as winstonLogger } from './middlewares/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { protect } from './middlewares/auth.js';
-import connectDB, { connectPostgres, connectRedis, getRedisClient } from './db.js';
+import connectDB, { connectRedis, getRedisClient } from './db.js';
 let redisClient;
 import apiRoutes from './api/apiRoutes.js';
 import Membership from './models/membership.js';
@@ -144,7 +144,6 @@ app.use((err, req, res, next) => {
 winstonLogger.info("DEBUG MONGO_URI:", { mongoUri: process.env.MONGO_URI });
 
 await connectDB();
-await connectPostgres();
 await connectRedis();
 redisClient = getRedisClient();
 
@@ -216,12 +215,9 @@ app.get('/api/dashboard', async (req, res) => {
     // Fetch active membership for the user
     try {
       const activeMembership = await Membership.findOne({
-        where: {
-          userId: req.user.id,
-          status: 'active'
-        },
-        order: [['created_at', 'DESC']] // Get the most recent active membership
-      });
+        userId: req.user.id,
+        status: 'active'
+      }).sort({ createdAt: -1 }); // Get the most recent active membership
 
       if (activeMembership) {
         req.user.membership = {

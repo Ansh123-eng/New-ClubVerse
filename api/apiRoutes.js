@@ -311,69 +311,43 @@ router.post('/membership', async (req, res) => {
       });
     }
 
-    // Try to save membership to PostgreSQL database, fallback to in-memory if DB not available
-    let membership;
-    let useInMemory = false;
-    try {
-      membership = await Membership.create({
-        userId: req.user.id, // Use authenticated user ID from JWT token
-        name,
-        email,
-        phone,
-        membershipType,
-        membershipPeriod,
-        paymentStatus: 'completed' // Assuming payment is completed for now
-      });
-    } catch (dbError) {
-      console.error('Membership DB error:', dbError);
-      console.log('Database not available, using in-memory storage for membership');
-      useInMemory = true;
-      // Create in-memory membership object
-      const startDate = new Date();
-      let endDate = new Date(startDate);
+    // Create membership in MongoDB Atlas
+    const startDate = new Date();
+    let endDate = new Date(startDate);
 
-      switch (membershipPeriod) {
-        case 'weekly':
-          endDate.setDate(startDate.getDate() + 7);
-          break;
-        case 'monthly':
-          endDate.setMonth(startDate.getMonth() + 1);
-          break;
-        case 'annually':
-          endDate.setFullYear(startDate.getFullYear() + 1);
-          break;
-      }
-
-      const basePrices = {
-        gold: { weekly: 50, monthly: 150, annually: 1500 },
-        platinum: { weekly: 80, monthly: 250, annually: 2500 },
-        diamond: { weekly: 120, monthly: 400, annually: 4000 }
-      };
-
-      membership = {
-        id: uuidv4(),
-        userId: req.user.id,
-        name,
-        email,
-        phone,
-        membershipType,
-        membershipPeriod,
-        status: 'active',
-        startDate,
-        endDate,
-        totalAmount: basePrices[membershipType][membershipPeriod],
-        paymentStatus: 'completed',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        toDateString: function() { return this.endDate.toDateString(); }
-      };
-
-      // Store in in-memory array for dashboard access
-      if (!global.inMemoryMemberships) {
-        global.inMemoryMemberships = [];
-      }
-      global.inMemoryMemberships.push(membership);
+    switch (membershipPeriod) {
+      case 'weekly':
+        endDate.setDate(startDate.getDate() + 7);
+        break;
+      case 'monthly':
+        endDate.setMonth(startDate.getMonth() + 1);
+        break;
+      case 'annually':
+        endDate.setFullYear(startDate.getFullYear() + 1);
+        break;
     }
+
+    const basePrices = {
+      gold: { weekly: 50, monthly: 150, annually: 1500 },
+      platinum: { weekly: 80, monthly: 250, annually: 2500 },
+      diamond: { weekly: 120, monthly: 400, annually: 4000 }
+    };
+
+    const membership = new Membership({
+      userId: req.user.id, // Use authenticated user ID from JWT token
+      name,
+      email,
+      phone,
+      membershipType,
+      membershipPeriod,
+      status: 'active',
+      startDate,
+      endDate,
+      totalAmount: basePrices[membershipType][membershipPeriod],
+      paymentStatus: 'completed' // Assuming payment is completed for now
+    });
+
+    await membership.save();
 
     const membershipDetails = {
       type: membershipType.charAt(0).toUpperCase() + membershipType.slice(1),

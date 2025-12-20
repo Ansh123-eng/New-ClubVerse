@@ -1,80 +1,64 @@
-import { DataTypes } from 'sequelize';
-import { sequelize } from '../db.js';
-import { v4 as uuidv4 } from 'uuid';
+import mongoose from 'mongoose';
 
-const Membership = sequelize.define('Membership', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const membershipSchema = new mongoose.Schema({
   userId: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    field: 'user_id'
+    type: String,
+    required: true
   },
   name: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    type: String,
+    required: true
   },
   email: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    type: String,
+    required: true
   },
   phone: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    type: String,
+    required: true
   },
   membershipType: {
-    type: DataTypes.ENUM('gold', 'platinum', 'diamond'),
-    allowNull: false,
-    field: 'membership_type'
+    type: String,
+    enum: ['gold', 'platinum', 'diamond'],
+    required: true
   },
   membershipPeriod: {
-    type: DataTypes.ENUM('weekly', 'monthly', 'annually'),
-    allowNull: false,
-    field: 'membership_period'
+    type: String,
+    enum: ['weekly', 'monthly', 'annually'],
+    required: true
   },
   status: {
-    type: DataTypes.ENUM('active', 'expired', 'cancelled'),
-    allowNull: false,
-    defaultValue: 'active'
+    type: String,
+    enum: ['active', 'expired', 'cancelled'],
+    default: 'active'
   },
   startDate: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-    field: 'start_date'
+    type: Date,
+    default: Date.now
   },
   endDate: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    field: 'end_date'
+    type: Date,
+    required: true
   },
   totalAmount: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: true,
-    field: 'total_amount'
+    type: Number,
+    required: true
   },
   paymentStatus: {
-    type: DataTypes.ENUM('pending', 'completed', 'failed'),
-    allowNull: false,
-    defaultValue: 'pending',
-    field: 'payment_status'
+    type: String,
+    enum: ['pending', 'completed', 'failed'],
+    default: 'pending'
   }
 }, {
-  tableName: 'memberships',
-  timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at'
+  timestamps: true
 });
 
-// Calculate end date and pricing based on type and period
-Membership.beforeValidate(async (membership) => {
-  const startDate = new Date(membership.startDate);
+// Pre-save middleware to calculate end date and pricing
+membershipSchema.pre('save', function(next) {
+  const startDate = new Date(this.startDate);
   let endDate;
 
-  switch (membership.membershipPeriod) {
+  switch (this.membershipPeriod) {
     case 'weekly':
       endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 7);
@@ -92,7 +76,7 @@ Membership.beforeValidate(async (membership) => {
       endDate.setMonth(startDate.getMonth() + 1);
   }
 
-  membership.endDate = endDate;
+  this.endDate = endDate;
 
   const basePrices = {
     gold: { weekly: 50, monthly: 150, annually: 1500 },
@@ -100,7 +84,10 @@ Membership.beforeValidate(async (membership) => {
     diamond: { weekly: 120, monthly: 400, annually: 4000 }
   };
 
-  membership.totalAmount = basePrices[membership.membershipType][membership.membershipPeriod];
+  this.totalAmount = basePrices[this.membershipType][this.membershipPeriod];
+  next();
 });
+
+const Membership = mongoose.model('Membership', membershipSchema);
 
 export default Membership;
