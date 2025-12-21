@@ -38,7 +38,6 @@ const app = express();
 const HTTP_PORT = process.env.HTTP_PORT ? Number(process.env.HTTP_PORT) : 8080;
 const HTTPS_PORT = process.env.HTTPS_PORT ? Number(process.env.HTTPS_PORT) : 8443;
 
-// ====== MIDDLEWARES ======
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -59,7 +58,6 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// RATE LIMITERS
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -84,11 +82,9 @@ const registerLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// CSRF PROTECTION
 const csrfProtection = csurf({
   cookie: {
     httpOnly: true,
-    // only secure cookie in production (so local dev over http doesn't break)
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict'
   }
@@ -100,15 +96,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// STATIC FILES WITHOUT CACHE
 app.use(express.static(path.join(__dirname, 'public')));
 
-// FAVICON ROUTE
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
 
-// ====== ROUTES ======
 app.use('/api', apiRoutes);
 
-// LOGIN & REGISTER ROUTES WITH CSRF
 app.get('/login', csrfProtection, (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -123,11 +118,9 @@ app.get('/register', csrfProtection, (req, res) => {
   res.render('register', { error: null, csrfToken: req.csrfToken() });
 });
 
-// APPLY CSRF PROTECTION TO API endpoints that handle auth actions
 app.use('/api/login', csrfProtection, authLimiter);
 app.use('/api/register', csrfProtection, registerLimiter);
 
-// CSRF ERROR HANDLER
 app.use((err, req, res, next) => {
   if (err && err.code === 'EBADCSRFTOKEN') {
     return res.status(403).json({ error: 'Invalid CSRF token' });
@@ -135,14 +128,12 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-// ====== DATABASE CONNECTIONS ======
 winstonLogger.info("DEBUG MONGO_URI:", { mongoUri: process.env.MONGO_URI });
 
 await connectDB();
 await connectRedis();
 redisClient = getRedisClient();
 
-// ====== HTTPS SETUP ======
 let httpsServer;
 try {
   const sslOptions = {
@@ -150,13 +141,11 @@ try {
     cert: fs.readFileSync(path.join(__dirname, 'ssl', 'cert.pem'))
   };
 
-  // HTTPS SERVER
   httpsServer = https.createServer(sslOptions, app);
   httpsServer.listen(HTTPS_PORT, () => {
     winstonLogger.info(`HTTPS Server running at https://localhost:${HTTPS_PORT}`);
   });
 
-  // HTTP → HTTPS REDIRECT
   const httpApp = express();
   httpApp.use((req, res) => {
     const hostWithoutPort = req.headers.host.replace(/:\d+$/, '');
@@ -166,20 +155,16 @@ try {
     winstonLogger.info(`HTTP Server redirecting to HTTPS`);
   });
 } catch (err) {
-  // If SSL files are not present (local dev), fallback to HTTP only for convenience
   winstonLogger.warn('SSL setup failed or files missing. Falling back to HTTP (dev only).', err);
   const server = app.listen(process.env.PORT || 3000, () => {
     winstonLogger.info(`HTTP Server running at http://localhost:${process.env.PORT || 3000}`);
   });
 }
 
-// ====== Simple helper: decode JWT if present ======
 function decodeTokenFromRequest(req) {
-  // Try cookie first
   let token = null;
   if (req.cookies && req.cookies.token) token = req.cookies.token;
 
-  // Then Authorization header
   if (!token && req.headers && req.headers.authorization) {
     const parts = req.headers.authorization.split(' ');
     if (parts.length === 2 && /^Bearer$/i.test(parts[0])) {
@@ -199,20 +184,16 @@ function decodeTokenFromRequest(req) {
   }
 }
 
-// ====== DASHBOARD route that populates req.user if token present ======
 app.get('/api/dashboard', async (req, res) => {
-  // Attempt to decode token and attach to req.user
   const decoded = decodeTokenFromRequest(req);
   if (decoded) {
-    // If your token stores user as { id, email, name } or similar, adapt accordingly.
     req.user = decoded;
 
-    // Fetch active membership for the user
     try {
       const activeMembership = await Membership.findOne({
         userId: req.user.id,
         status: 'active'
-      }).sort({ createdAt: -1 }); // Get the most recent active membership
+      }).sort({ createdAt: -1 }); 
 
       if (activeMembership) {
         req.user.membership = {
@@ -221,7 +202,6 @@ app.get('/api/dashboard', async (req, res) => {
           endDate: activeMembership.endDate
         };
       } else {
-        // Check in-memory storage if database query returns nothing
         const inMemoryMembership = global.inMemoryMemberships?.find(m => m.userId === req.user.id && m.status === 'active');
         if (inMemoryMembership) {
           req.user.membership = {
@@ -233,7 +213,6 @@ app.get('/api/dashboard', async (req, res) => {
       }
     } catch (membershipError) {
       winstonLogger.warn('Error fetching membership data from database:', membershipError);
-      // Fallback to in-memory storage if database fails
       const inMemoryMembership = global.inMemoryMemberships?.find(m => m.userId === req.user.id && m.status === 'active');
       if (inMemoryMembership) {
         req.user.membership = {
@@ -253,10 +232,6 @@ app.get('/api/dashboard', async (req, res) => {
     'drum.png', 'wine.png'
   ];
 
-  // If you prefer redirecting unauthorized users to login:
-  // if (!req.user) return res.redirect('/login');
-
-  // If your frontend expects JSON:
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
     return res.json({
       success: true,
@@ -264,15 +239,12 @@ app.get('/api/dashboard', async (req, res) => {
       user: req.user || null
     });
   }
-
-  // Otherwise render dashboard EJS view (server-rendered)
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   res.render('dashboard', { instaImages, user: req.user });
 });
 
-// ====== OTHER PAGES (example kept intact) ======
 app.get('/api/membership', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -302,7 +274,6 @@ const ldhBars = [
 ];
 
 app.get('/api/bar', (req, res) => {
-  // attach user if token present
   const decoded = decodeTokenFromRequest(req);
   req.user = decoded || null;
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -353,10 +324,8 @@ staticPages.forEach(page => {
   });
 });
 
-// Weather route
 app.get('/api/weather', async (req, res) => {
   try {
-    // Prevent HTML page caching
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
@@ -369,7 +338,6 @@ app.get('/api/weather', async (req, res) => {
       return res.status(500).json({ error: 'Weather API key not configured' });
     }
 
-    // Check Redis for cached weather data
     let cachedWeather = null;
     if (redisClient) {
       try {
@@ -403,7 +371,6 @@ app.get('/api/weather', async (req, res) => {
 
       cachedWeather = { ldh, chd, timestamp: new Date().toISOString() };
 
-      // Cache weather data for 30 minutes
       if (redisClient) {
         try {
           await redisClient.setEx('weather_data', 1800, JSON.stringify(cachedWeather));
@@ -425,10 +392,8 @@ app.get('/api/weather', async (req, res) => {
   }
 });
 
-// ====== ERROR HANDLER ======
 app.use(errorHandler);
 
-// ====== GLOBAL ERROR HANDLING ======
 process.on('uncaughtException', (err) => {
   winstonLogger.error('Uncaught Exception:', err);
   process.exit(1);

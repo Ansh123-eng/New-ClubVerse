@@ -1,7 +1,16 @@
 {
+  "name": "club-verse-2",
+  "version": "1.0.0",
+  "description": "Club Verse - Night Club Management System",
+  "main": "server.js",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'No build step required'",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
