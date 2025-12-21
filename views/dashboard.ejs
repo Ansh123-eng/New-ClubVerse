@@ -9,6 +9,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
   <link rel="stylesheet" href="/styles/dashbar.css">
+  <style>
+    .section-title h2{
+      text-shadow: rgba(212, 175, 55, 0.5) 0px 0px 20.0059px, rgba(212, 175, 55, 0.3) 0px 0px 40.0119px;
+    }
+
+    /* Remove hover effects from upcoming events cards */
+    .event-card:hover {
+      transform: none;
+    }
+
+    .event-card:hover .event-overlay {
+      background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+    }
+  </style>
 </head>
 <body>
   <div class="scroll-progress" id="scrollProgress"></div>
@@ -647,14 +661,14 @@
 
           instagramGrid.appendChild(instagramItem);
 
-          // Apply hover effects to new items
-          instagramItem.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.05) rotate(2deg)';
-          });
+          // Apply hover effects to new items removed
+          // instagramItem.addEventListener('mouseenter', function() {
+          //   this.style.transform = 'scale(1.05) rotate(2deg)';
+          // });
 
-          instagramItem.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1) rotate(0deg)';
-          });
+          // instagramItem.addEventListener('mouseleave', function() {
+          //   this.style.transform = 'scale(1) rotate(0deg)';
+          // });
         });
       }
       
@@ -721,22 +735,22 @@
         });
       });
 
-      // Event card hover effects
-      document.querySelectorAll('.event-card').forEach(card => {
-        card.addEventListener('mouseenter', function() {
-          const overlay = this.querySelector('.event-overlay');
-          if (overlay) {
-            overlay.style.background = 'linear-gradient(45deg, rgba(212, 175, 55, 0.8) 0%, rgba(0, 0, 0, 0.8) 100%)';
-          }
-        });
-        
-        card.addEventListener('mouseleave', function() {
-          const overlay = this.querySelector('.event-overlay');
-          if (overlay) {
-            overlay.style.background = 'linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.8) 100%)';
-          }
-        });
-      });
+      // Event card hover effects removed
+      // document.querySelectorAll('.event-card').forEach(card => {
+      //   card.addEventListener('mouseenter', function() {
+      //     const overlay = this.querySelector('.event-overlay');
+      //     if (overlay) {
+      //       overlay.style.background = 'linear-gradient(45deg, rgba(212, 175, 55, 0.8) 0%, rgba(0, 0, 0, 0.8) 100%)';
+      //     }
+      //   });
+      //
+      //   card.addEventListener('mouseleave', function() {
+      //     const overlay = this.querySelector('.event-overlay');
+      //     if (overlay) {
+      //       overlay.style.background = 'linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.8) 100%)';
+      //     }
+      //   });
+      // });
 
       console.log('🎉 Club Verse - Where the night comes alive! 🎉');
     });

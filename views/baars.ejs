@@ -53,6 +53,18 @@
       border-radius: 18px;
       box-shadow: 0 8px 32px #d4af37a0;
       display: block;
+      z-index: 0;
+    }
+
+    .banner-image::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0.5, 0.9, 0.5, 0.3);
+      z-index: 2;
     }
 
     .banner-shadow {
@@ -92,61 +104,143 @@
     }
 
     .section-title {
-      font-size: 3rem;
-      font-weight: 900;
-      color: #ffd700;
       text-align: center;
-      margin: 48px 0 16px 0;
-      letter-spacing: 2px;
-      text-shadow: 0 2px 12px #232a3b, 0 0 8px #d4af37;
-      transition: color 0.4s, text-shadow 0.4s, transform 0.4s;
-      cursor: pointer;
+      margin-bottom: 80px;
+      position: relative;
+      z-index: 2;
+      font-family: 'Playfair Display', serif;
+      font-size: 3.5rem;
+      color: #fff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px rgba(212, 175, 55, 0.5), 0 0 40px rgba(212, 175, 55, 0.3);
+      animation: titleGlow 2s ease-in-out infinite alternate;
     }
 
-    .section-title:hover {
-      color: #d4af37;
-      text-shadow: 0 4px 24px #ffd700, 0 0 16px #232a3b;
-      transform: scale(1.08);
+    @keyframes titleGlow {
+      from {
+        text-shadow: 0 0 20px rgba(212, 175, 55, 0.5), 0 0 40px rgba(212, 175, 55, 0.3);
+      }
+      to {
+        text-shadow: 0 0 30px rgba(212, 175, 55, 0.8), 0 0 60px rgba(212, 175, 55, 0.5);
+      }
+    }
+
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(45deg, #d4af37, #ffd700);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
     }
 
     .city-section {
-      margin: 40px auto;
-      max-width: 1200px;
+      padding: 70px 5%;
+      background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+      max-width: none;
+      margin: 0;
+      position: relative;
+    }
+
+    .city-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+      pointer-events: none;
     }
 
     .outlets-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 32px;
-      margin-top: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     .outlet-card {
-      background: #434242;
-      border-radius: 18px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 25px;
       overflow: hidden;
-      transition: transform 0.2s;
+      position: relative;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.15);
       display: flex;
       flex-direction: column;
       align-items: stretch;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(212, 175, 55, 0.1);
+      animation: fadeInUp 0.8s ease-out forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .outlet-card:nth-child(1) { animation-delay: 0.1s; }
+    .outlet-card:nth-child(2) { animation-delay: 0.2s; }
+    .outlet-card:nth-child(3) { animation-delay: 0.3s; }
+    .outlet-card:nth-child(4) { animation-delay: 0.4s; }
+    .outlet-card:nth-child(5) { animation-delay: 0.5s; }
+    .outlet-card:nth-child(6) { animation-delay: 0.6s; }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .outlet-card:hover {
-      transform: translateY(-8px) scale(1.03);
-      box-shadow: 0 8px 32px #d4af37a0;
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 30px rgba(212, 175, 55, 0.3);
+      border-color: rgba(212, 175, 55, 0.3);
     }
+
+    .outlet-img {
+      height: 250px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .outlet-img::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, rgba(212, 175, 55, 0.2), rgba(255, 215, 0, 0.1));
+      mix-blend-mode: overlay;
+      z-index: 1;
+      transition: opacity 0.5s ease;
+      opacity: 0.7;
+    }
+
+
 
     .outlet-img img {
       width: 100%;
-      height: 180px;
+      height: 100%;
       object-fit: cover;
-      border-bottom: 2px solid #d4af37;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      filter: brightness(0.9) contrast(1.1);
+    }
+
+    .outlet-card:hover .outlet-img img {
+      transform: scale(1.15);
+      filter: brightness(1.1) contrast(1.2);
     }
 
     .outlet-info {
-      padding: 18px 16px 12px 16px;
-      color: #fff;
+      padding: 30px;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -154,32 +248,52 @@
     }
 
     .outlet-info h3 {
-      font-size: 1.3rem;
-      color: #ffe100;
-      margin-bottom: 8px;
+      color: #d4af37;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      font-family: 'Playfair Display', serif;
     }
 
     .outlet-actions {
-      margin-top: 16px;
+      margin-top: 20px;
       display: flex;
-      gap: 12px;
+      gap: 15px;
+      justify-content: center;
     }
 
     .outlet-btn {
       background: linear-gradient(45deg, #d4af37, #ffd700);
-      color: #0c1531;
-      border-radius: 16px;
-      padding: 7px 18px;
+      color: #000;
+      border-radius: 20px;
+      padding: 10px 20px;
       font-weight: 600;
       text-decoration: none;
-      transition: background 0.2s;
-      border: none;
-      box-shadow: 0 2px 8px #d4af3730;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid transparent;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .outlet-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .outlet-btn:hover::before {
+      left: 100%;
     }
 
     .outlet-btn:hover {
       background: linear-gradient(45deg, #ffd700, #d4af37);
-      color: #000;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
     }
   </style>
 </head>
@@ -195,7 +309,6 @@
         <ul>
           <li><a href="/api/dashboard">Home</a></li>
           <li><a href="/api/bar">Bars</a></li>
-          <li><a href="#events">Events</a></li>
           <li><a href="#contact">Contact</a></li>
           <li><a href="/api/weather" class="weather-btn"
               style="background: linear-gradient(45deg, #d4af37, #ffd700); color: #000; border-radius: 20px; padding: 8px 18px; font-weight: 600; margin-left: 10px;">Weather</a>
@@ -217,6 +330,7 @@
     <!-- Chandigarh Section -->
     <section class="city-section">
       <h2 class="section-title">CHANDIGARH</h2>
+      <br><br>
       <div class="outlets-grid">
         <div class="outlet-card">
           <div class="outlet-img">
@@ -269,6 +383,7 @@
     <!-- Ludhiana Section -->
     <section class="city-section">
       <h2 class="section-title">LUDHIANA</h2>
+      <br><br>
       <div class="outlets-grid">
         <div class="outlet-card">
           <div class="outlet-img">
