@@ -47,6 +47,32 @@ const reservationSchema = new mongoose.Schema({
     type: String,
     required: false,
     default: 'confirmed'
+  },
+  // Pricing fields
+  baseAmount: {
+    type: Number,
+    required: false,
+    default: 0
+  },
+  discountAmount: {
+    type: Number,
+    required: false,
+    default: 0
+  },
+  totalAmount: {
+    type: Number,
+    required: false,
+    default: 0
+  },
+  membershipType: {
+    type: String,
+    required: false,
+    enum: ['none', 'gold', 'platinum', 'diamond'],
+    default: 'none'
+  },
+  discountCode: {
+    type: String,
+    required: false
   }
 }, {
   timestamps: true

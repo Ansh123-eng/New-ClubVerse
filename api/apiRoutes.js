@@ -10,6 +10,7 @@ import User from '../models/user.js';
 import Reservation from '../models/reservation.js';
 import Membership from '../models/membership.js';
 import Query from '../models/query.js';
+import Club from '../models/club.js';
 import transporter from '../middlewares/mailer.js';
 import {
   checkPasswordStrength,
@@ -21,7 +22,92 @@ import {
   getClientIP
 } from '../utils/validation.js';
 import { logger } from '../middlewares/logger.js';
+import {
+  calculatePricing,
+  getClubBasePrice,
+  validateDiscountCode,
+  getUserMembershipType
+} from '../utils/pricing.js';
 const router = express.Router();
+
+const MEMBERSHIP_DISCOUNTS = {
+  'gold': 0.05,     // 5% discount
+  'platinum': 0.15, // 15% discount
+  'diamond': 0.25   // 25% discount
+};
+
+const GROUP_DISCOUNT_THRESHOLD = 10;
+const GROUP_DISCOUNT_RATE = 0.05; // 5% discount for large groups
+
+router.post('/user-membership', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    const membershipType = await getUserMembershipType(email);
+
+    res.json({
+      success: true,
+      membershipType: membershipType
+    });
+  } catch (error) {
+    logger.error('User membership fetch error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch membership' });
+  }
+});
+
+router.post('/calculate-price', async (req, res) => {
+  try {
+    const { clubName, guests, membershipType } = req.body;
+
+    // Validate inputs
+    const guestCount = parseInt(guests) || 1;
+    const safeMembership = membershipType ? membershipType.toLowerCase() : 'none';
+
+    // 1. Get Base Price for the selected club from MongoDB
+    let basePrice = 300; // Default/minimum base price
+    if (clubName) {
+      const club = await Club.findOne({ name: clubName }).lean();
+      // Use club's base price if found, otherwise the default
+      if (club && club.basePrice) {
+        basePrice = club.basePrice;
+      }
+    }
+
+    // 2. Calculate Subtotal
+    const subtotal = basePrice * guestCount;
+
+    // 3. Calculate Membership Discount
+    const discountRate = MEMBERSHIP_DISCOUNTS[safeMembership] || 0;
+    const membershipDiscount = subtotal * discountRate;
+
+    // 4. Calculate Group Discount (if applicable)
+    let groupDiscount = 0;
+    if (guestCount >= GROUP_DISCOUNT_THRESHOLD) {
+      groupDiscount = subtotal * GROUP_DISCOUNT_RATE;
+    }
+
+    // 5. Final Total
+    const totalAmount = Math.max(0, subtotal - membershipDiscount - groupDiscount);
+
+    res.json({
+      success: true,
+      data: {
+        basePrice,
+        subtotal,
+        membershipDiscount: Math.round(membershipDiscount),
+        groupDiscount: Math.round(groupDiscount),
+        totalAmount: Math.round(totalAmount)
+      }
+    });
+  } catch (error) {
+    logger.error('Pricing calculation error:', error);
+    res.status(500).json({ success: false, message: 'Calculation failed' });
+  }
+});
 
 // Auth-specific rate limiters
 const authLimiter = rateLimit({
@@ -191,11 +277,7 @@ router.get('/logout', (req, res) => {
 
 router.post('/reservations', async (req, res) => {
   try {
-    const { name, email, phone, date, time, guests, specialRequests, club, clubLocation } = req.body;
-    if (!name || !email || !phone || !date || !time || !guests || !club) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-    const reservation = await Reservation.create({
+    const {
       name,
       email,
       phone,
@@ -204,10 +286,69 @@ router.post('/reservations', async (req, res) => {
       guests,
       specialRequests,
       club,
-      clubLocation
+      clubLocation,
+      membershipType,
+      discountCode
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !phone || !date || !time || !guests || !club) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const guestCount = parseInt(guests);
+    if (isNaN(guestCount) || guestCount < 1) {
+      return res.status(400).json({ error: 'Invalid number of guests' });
+    }
+
+    // Get club base price
+    const basePrice = getClubBasePrice(club);
+
+    // Determine membership type
+    let finalMembershipType = 'none';
+    let validatedDiscountCode = null;
+
+    if (membershipType && membershipType !== 'none') {
+      // If membership type is provided directly, validate it belongs to the user
+      const userMembership = await getUserMembershipType(email);
+      if (userMembership === membershipType) {
+        finalMembershipType = membershipType;
+      } else {
+        return res.status(400).json({ error: 'Invalid membership type for this user' });
+      }
+    } else if (discountCode) {
+      // Validate discount code
+      const discountValidation = await validateDiscountCode(discountCode);
+      if (discountValidation) {
+        finalMembershipType = discountValidation.membershipType;
+        validatedDiscountCode = discountCode;
+      } else {
+        return res.status(400).json({ error: 'Invalid or expired discount code' });
+      }
+    }
+
+    // Calculate pricing
+    const pricing = calculatePricing(guestCount, finalMembershipType, basePrice);
+
+    // Create reservation with calculated pricing
+    const reservation = await Reservation.create({
+      name,
+      email,
+      phone,
+      date,
+      time,
+      guests: guestCount,
+      specialRequests,
+      club,
+      clubLocation,
+      baseAmount: pricing.baseAmount,
+      discountAmount: pricing.discountAmount,
+      totalAmount: pricing.totalAmount,
+      membershipType: finalMembershipType,
+      discountCode: validatedDiscountCode
     });
 
-
+    // Send confirmation email with pricing details
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -222,9 +363,19 @@ router.post('/reservations', async (req, res) => {
             <li style="margin: 10px 0;"><strong>🏙️ Club:</strong> ${club}</li>
             <li style="margin: 10px 0;"><strong>📆 Date:</strong> ${date}</li>
             <li style="margin: 10px 0;"><strong>⏰ Time:</strong> ${time}</li>
-            <li style="margin: 10px 0;"><strong>👥 Guests:</strong> ${guests}</li>
+            <li style="margin: 10px 0;"><strong>👥 Guests:</strong> ${guestCount}</li>
             <li style="margin: 10px 0;"><strong>📍 Location:</strong> ${clubLocation || 'Main Venue'}</li>
             <li style="margin: 10px 0;"><strong>💝 Special Requests:</strong> ${specialRequests || 'None'}</li>
+          </ul>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.9); padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #28a745;">
+          <h3 style="color: #28a745; margin-top: 0;">💰 Payment Summary:</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="margin: 8px 0;"><strong>Base Amount:</strong> ₹${pricing.baseAmount}</li>
+            ${pricing.discountAmount > 0 ? `<li style="margin: 8px 0; color: #28a745;"><strong>Membership Discount:</strong> -₹${pricing.discountAmount}</li>` : ''}
+            <li style="margin: 8px 0; font-size: 18px; font-weight: bold;"><strong>Total Amount:</strong> ₹${pricing.totalAmount}</li>
+            ${finalMembershipType !== 'none' ? `<li style="margin: 8px 0;"><strong>Membership Applied:</strong> ${finalMembershipType.charAt(0).toUpperCase() + finalMembershipType.slice(1)}</li>` : ''}
           </ul>
         </div>
 
@@ -240,13 +391,22 @@ router.post('/reservations', async (req, res) => {
         <br><small style="color: #777; font-size: 12px;">This is an automated email. Please do not reply.</small>
       </div>`
     };
+
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
         console.error('Email send error:', err);
       }
     });
 
-    res.status(201).json({ message: 'Reservation successful! Confirmation email sent.' });
+    res.status(201).json({
+      message: 'Reservation successful! Confirmation email sent.',
+      reservation: {
+        id: reservation._id,
+        totalAmount: pricing.totalAmount,
+        discountAmount: pricing.discountAmount,
+        membershipType: finalMembershipType
+      }
+    });
   } catch (error) {
     console.error('Reservation error:', error);
     res.status(500).json({ error: 'Server error. Please try again.' });

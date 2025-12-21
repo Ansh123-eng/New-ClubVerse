@@ -290,19 +290,47 @@
             <textarea id="special-requests" name="special-requests" placeholder="Any special requests or preferences..."></textarea>
           </div>
           
+
+
           <div class="summary-section">
-            <h4 class="summary-title">Booking Summary</h4>
+            <h3 class="summary-title">
+              <i class="fas fa-calculator"></i>
+              Booking Summary
+            </h3>
+
             <div class="summary-row">
-              <span>Reservation Fee</span>
-              <span>₹1000</span>
+              <span>Base Amount (per guest)</span>
+              <span id="base-amount">₹0</span>
             </div>
+
             <div class="summary-row">
-              <span>Discount (25%)</span>
-              <span>-₹250</span>
+              <span>Number of Guests</span>
+              <span id="guest-count">0</span>
             </div>
+
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span id="subtotal">₹0</span>
+            </div>
+
+            <div class="summary-row" id="membership-info-row" style="display: none;">
+              <span id="membership-info-label">Membership</span>
+              <span id="membership-info">None</span>
+            </div>
+
+            <div class="summary-row" id="membership-discount-row" style="display: none;">
+              <span id="membership-discount-label">Membership Discount</span>
+              <span id="membership-discount">-₹0</span>
+            </div>
+
+            <div class="summary-row" id="group-discount-row" style="display: none;">
+              <span>Group Discount (10+ guests)</span>
+              <span id="group-discount">-₹0</span>
+            </div>
+
             <div class="total-row">
-              <span>Total (Adjustable against bill)</span>
-              <span class="total-amount">₹750</span>
+              <span>Total Amount</span>
+              <span id="total-amount">₹0</span>
             </div>
           </div>
           
@@ -508,24 +536,123 @@
       });
     }
     
+    // Pricing calculation variables
+    let currentBasePrice = 300; // Default base price
+    let currentGuests = 1;
+    let currentMembershipType = 'none';
+
+    // Function to calculate and update pricing
+    async function calculatePricing() {
+      const clubName = document.getElementById('club-name').textContent;
+      const guests = document.getElementById('guests1').value;
+      const email = document.getElementById('email').value;
+
+      if (!guests) return;
+
+      const guestCount = guests === '10+' ? 10 : parseInt(guests);
+
+      try {
+        // First, get user's membership type
+        let membershipType = 'none';
+        if (email) {
+          try {
+            const membershipResponse = await fetch('/api/user-membership', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email })
+            });
+            const membershipResult = await membershipResponse.json();
+            if (membershipResult.success) {
+              membershipType = membershipResult.membershipType;
+            }
+          } catch (membershipError) {
+            console.log('Could not fetch membership info:', membershipError);
+          }
+        }
+
+        const response = await fetch('/api/calculate-price', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clubName: clubName,
+            guests: guestCount,
+            membershipType: membershipType
+          })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          updatePricingDisplay(result.data, guestCount, membershipType);
+        }
+      } catch (error) {
+        console.error('Pricing calculation error:', error);
+      }
+    }
+
+    // Function to update pricing display
+    function updatePricingDisplay(data, guestCount, membershipType) {
+      document.getElementById('base-amount').textContent = `₹${data.basePrice}`;
+      document.getElementById('guest-count').textContent = guestCount;
+      document.getElementById('subtotal').textContent = `₹${data.subtotal}`;
+
+      const membershipInfoRow = document.getElementById('membership-info-row');
+      const membershipInfoEl = document.getElementById('membership-info');
+      const membershipDiscountRow = document.getElementById('membership-discount-row');
+      const membershipDiscountEl = document.getElementById('membership-discount');
+      const membershipDiscountLabel = document.getElementById('membership-discount-label');
+      const groupDiscountRow = document.getElementById('group-discount-row');
+      const groupDiscountEl = document.getElementById('group-discount');
+
+      if (membershipType && membershipType !== 'none') {
+        membershipInfoRow.style.display = 'flex';
+        membershipInfoEl.textContent = membershipType.charAt(0).toUpperCase() + ' Membership';
+      } else {
+        membershipInfoRow.style.display = 'none';
+      }
+
+      if (data.membershipDiscount > 0) {
+        membershipDiscountRow.style.display = 'flex';
+        const discountRate = membershipType === 'gold' ? 10 : membershipType === 'platinum' ? 15 : membershipType === 'diamond' ? 25 : 0;
+        membershipDiscountLabel.textContent = `Membership Discount (${discountRate}%)`;
+        membershipDiscountEl.textContent = `-₹${data.membershipDiscount}`;
+      } else {
+        membershipDiscountRow.style.display = 'none';
+      }
+
+      if (data.groupDiscount > 0) {
+        groupDiscountRow.style.display = 'flex';
+        groupDiscountEl.textContent = `-₹${data.groupDiscount}`;
+      } else {
+        groupDiscountRow.style.display = 'none';
+      }
+
+      document.getElementById('total-amount').textContent = `₹${data.totalAmount}`;
+    }
+
+    // Handle email change to update pricing
+    document.getElementById('email').addEventListener('input', calculatePricing);
+
+    // Handle guest count change
+    document.getElementById('guests1').addEventListener('change', calculatePricing);
+
     // Form submission handler
     document.getElementById('table-booking-form').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
+
       // Get selected time slot tables count
       let availableTables = tableAvailabilityData.availableTables;
       const selectedTimeSlot = document.querySelector('.time-slot.selected');
-      
+
       if (selectedTimeSlot) {
         availableTables = parseInt(selectedTimeSlot.dataset.tables);
       }
-      
+
       // Check if tables are available
       if (availableTables <= 0) {
         alert('Sorry, no tables are available for the selected time. Please choose another time slot.');
         return;
       }
-      
+
       // Gather form data
       const form = e.target;
       const data = {
@@ -539,7 +666,7 @@
         club: document.getElementById('club-name').textContent,
         clubLocation: document.getElementById('club-location').textContent
       };
-      
+
       // Send data to backend
       try {
         const response = await fetch('/api/reservations', {
@@ -548,20 +675,20 @@
           body: JSON.stringify(data)
         });
         const result = await response.json();
-        
+
         if (response.ok) {
           alert('Booking confirmed! You will receive a confirmation email shortly.');
-          
+
           // Update the availability after booking
           if (selectedTimeSlot) {
             const tablesLeft = Math.max(0, parseInt(selectedTimeSlot.dataset.tables) - 1);
             selectedTimeSlot.dataset.tables = tablesLeft;
             selectedTimeSlot.querySelector('.table-count').textContent = `${tablesLeft} table${tablesLeft !== 1 ? 's' : ''} left`;
-            
+
             if (tablesLeft <= 2) {
               selectedTimeSlot.classList.add('low-availability');
             }
-            
+
             tableAvailabilityData.availableTables = Math.max(0, tableAvailabilityData.availableTables - 1);
             updateAvailabilityIndicator(tableAvailabilityData.availableTables, tableAvailabilityData.totalTables);
           }

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test - Calculate Price Endpoint</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = 'Testing API with updated pricing...';
+
+            const testCases = [
+                // Test all 6 clubs with 1 guest, no membership
+                { clubId: 'club1', guests: 1, membership: 'none' }, // ₹300
+                { clubId: 'club2', guests: 1, membership: 'none' }, // ₹350
+                { clubId: 'club3', guests: 1, membership: 'none' }, // ₹400
+                { clubId: 'club4', guests: 1, membership: 'none' }, // ₹450
+                { clubId: 'club5', guests: 1, membership: 'none' }, // ₹500
+                { clubId: 'club6', guests: 1, membership: 'none' }, // ₹550
+
+                // Test membership discounts with club1 (₹300 base)
+                { clubId: 'club1', guests: 2, membership: 'gold' },      // ₹540 (10% off)
+                { clubId: 'club1', guests: 2, membership: 'platinum' },  // ₹480 (20% off)
+                { clubId: 'club1', guests: 2, membership: 'diamond' },   // ₹420 (30% off)
+
+                // Test with higher guest count
+                { clubId: 'club3', guests: 4, membership: 'none' },      // ₹1,600
+                { clubId: 'club3', guests: 4, membership: 'diamond' },   // ₹1,120 (30% off)
+            ];
+
+            let results = '';
+
+            for (const testCase of testCases) {
+                try {
+                    const response = await fetch('/api/calculate-price', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(testCase)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        results += `✅ ${testCase.clubId}, ${testCase.guests} guests, ${testCase.membership}: ₹${result.totalAmount}<br>`;
+                    } else {
+                        results += `❌ Failed for ${JSON.stringify(testCase)}: ${response.status}<br>`;
+                    }
+                } catch (error) {
+                    results += `❌ Error for ${JSON.stringify(testCase)}: ${error.message}<br>`;
+                }
+            }
+
+            resultsDiv.innerHTML = results;
+        }
+    </script>
+</body>
+</html>
