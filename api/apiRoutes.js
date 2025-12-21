@@ -9,6 +9,7 @@ import { protect } from '../middlewares/auth.js';
 import User from '../models/user.js';
 import Reservation from '../models/reservation.js';
 import Membership from '../models/membership.js';
+import Query from '../models/query.js';
 import transporter from '../middlewares/mailer.js';
 import {
   checkPasswordStrength,
@@ -418,6 +419,29 @@ router.post('/membership', async (req, res) => {
       success: null,
       user: req.user
     });
+  }
+});
+
+router.post('/contact', async (req, res) => {
+  try {
+    const { name, email, phone, subject, message } = req.body;
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const query = await Query.create({
+      name,
+      email,
+      phone,
+      subject,
+      message
+    });
+
+    res.status(201).json({ message: 'Query submitted successfully!' });
+  } catch (error) {
+    console.error('Query submission error:', error);
+    res.status(500).json({ error: 'Server error. Please try again.' });
   }
 });
 
