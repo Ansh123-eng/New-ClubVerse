@@ -50,11 +50,11 @@ export async function validateDiscountCode(discountCode) {
  * @param {string} membershipType - Type of membership (none, gold, platinum, diamond)
  * @returns {number} Total amount
  */
-export function calculateReservationAmount(guests, membershipType, basePrice = 350) {
+export function calculateReservationAmount(guests, membershipType, basePrice = 500) {
   const guestCount = parseInt(guests);
   const membershipDiscounts = {
     none: 0,
-    gold: 0.10,     // 10% discount
+    gold: 0.05,     // 5% discount
     platinum: 0.15, // 15% discount
     diamond: 0.25   // 25% discount
   };

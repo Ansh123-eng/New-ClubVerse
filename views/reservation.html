@@ -345,6 +345,20 @@
   </div>
 
   <script>
+    // Club images map
+    const clubImages = {
+      'PAARA NIGHT CLUB': '/images/poo.png',
+      'LUNA NIGHT CLUB': '/images/luna%20night%20club.jpg',
+      'Kalaghoda': '/images/kgf.webp',
+      'Brew Estate': '/images/grand.jpg',
+      'Boulevard': '/images/bl.webp',
+      'Baklavi Bar & Kitchen': '/images/baklavi3.avif',
+      'Paara': '/images/poo.png',
+      'Baklavi': '/images/baklavi3.avif',
+      'Luna Night Club': '/images/luna%20night%20club.jpg',
+      'Kala Ghoda': '/images/kgf.webp',
+    };
+
     // Function to get URL parameters
     function getUrlParameter(name) {
       name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
@@ -484,14 +498,19 @@
     // Function to initialize the page with club information and availability
     function initializePage() {
       const clubName = getUrlParameter('club') || 'Night Club';
-      const clubImage = getUrlParameter('image') || 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80';
+      let clubImage = getUrlParameter('image');
       const clubLocation = getUrlParameter('location') || 'Ludhiana, City Center';
-      
+
+      // If no image parameter, use the club images map
+      if (!clubImage) {
+        clubImage = clubImages[clubName] || 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80';
+      }
+
       if (clubName) {
         document.getElementById('club-name').textContent = clubName;
         document.title = `Book a Table - ${clubName}`;
       }
-      
+
       if (clubImage) {
         document.getElementById('club-image').src = clubImage;
       }
