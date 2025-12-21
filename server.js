@@ -103,10 +103,7 @@ app.use((req, res, next) => {
 // STATIC FILES WITHOUT CACHE
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ====== ROOT ROUTE ======
-app.get('/', (req, res) => {
-  res.redirect('/login');
-});
+// FAVICON ROUTE
 
 // ====== ROUTES ======
 app.use('/api', apiRoutes);
