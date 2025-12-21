@@ -403,3 +403,6 @@ process.on('unhandledRejection', (reason, promise) => {
   winstonLogger.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
 });
+
+// Export for Vercel
+export default app;
