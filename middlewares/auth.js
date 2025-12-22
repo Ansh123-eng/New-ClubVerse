@@ -6,6 +6,11 @@ const protect = async (req, res, next) => {
 
   try {
 
+    if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim() === '') {
+      console.error('ERROR: JWT_SECRET is not defined or empty in environment variables');
+      req.user = null;
+      return next();
+    }
     if (!process.env.JWT_SECRET) {
       console.error('ERROR: JWT_SECRET is not defined in environment variables');
       req.user = null;

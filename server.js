@@ -26,6 +26,8 @@ let redisClient;
 import apiRoutes from './api/apiRoutes.js';
 import Membership from './models/membership.js';
 
+
+
 const debug = debugModule('clubverse:server');
 debug('Starting server...');
 
@@ -104,6 +106,8 @@ app.get('/', (req, res) => {
 
 app.use('/api', apiRoutes);
 
+
+
 app.get('/login', csrfProtection, (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -117,6 +121,9 @@ app.get('/register', csrfProtection, (req, res) => {
   res.setHeader('Expires', '0');
   res.render('register', { error: null, csrfToken: req.csrfToken() });
 });
+
+
+
 
 app.use('/api/login', csrfProtection, authLimiter);
 app.use('/api/register', csrfProtection, registerLimiter);

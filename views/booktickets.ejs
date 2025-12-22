@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Book Tickets | Club Verse</title>
+
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; width: 100%; overflow-x: hidden; font-family: Arial, sans-serif; }
+body {
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+    url('/images/ticket.webp') center/cover no-repeat fixed;
+}
+.nav { position: fixed; top: 0; left: 0; width: 100%; padding: 20px 40px; display: flex; align-items: center; background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.8), transparent); z-index: 1000; }
+.logo img { width: 170px; }
+.menu { margin-left: auto; margin-right: 60px; }
+.menu ul { display: flex; gap: 60px; list-style: none; margin: 0; padding: 0; }
+.menu ul li a { color: #fff; text-decoration: none; padding: 6px 20px; border: 1px solid #fff; border-radius: 8px; }
+.main-wrapper { padding-top: 180px; display: flex; justify-content: center; }
+.page-layout { display: flex; gap: 40px; max-width: 1300px; width: 100%; padding: 20px; }
+.info-card { width: 420px; background: rgba(16,30,58,0.95); padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.club-name { font-size: 46px; color: #fff; margin-bottom: 20px; }
+.event-name { font-size: 30px; color: #cbd5e1; }
+.ticket-box { flex: 1; background: rgba(16,30,58,0.95); padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 20px; }
+h2, h3 { color: #fff; }
+.section { margin-bottom: 10px; }
+input, select { width: 100%; padding: 12px; margin-top: 8px; border-radius: 6px; border: none; }
+.row { display: flex; gap: 10px; }
+.price-box { background: #f4f4f4; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
+.payment label { color: #fff; display: block; margin-top: 8px; cursor: pointer; }
+button { width: 100%; padding: 14px; background: #2c3e50; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+
+.payment-methods { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
+.payment-card, .payment-upi, .payment-venue { background: rgba(20,40,70,0.95); padding: 20px; border-radius: 12px; display: none; }
+.payment-card input { margin-top: 8px; }
+
+@media (max-width: 900px) {
+  .page-layout { flex-direction: column; align-items: center; }
+  .info-card, .ticket-box { width: 100%; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="nav">
+  <div class="logo">
+    <img src="/images/club-logo-2.png" alt="Logo">
+  </div>
+  <div class="menu">
+    <ul>
+      <li><a href="/api/dashboard">Home</a></li>
+      <li><a href="/api/bar">Bars</a></li>
+      <li><a href="/">Logout</a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="main-wrapper">
+  <div class="page-layout">
+
+    <div class="info-card">
+      <h1 class="club-name"><%= club %></h1>
+      <h2 class="event-name"><%= event %></h2>
+    </div>
+
+    <div class="ticket-box">
+      <h2>🎟️ Book Tickets</h2>
+
+      <div class="section">
+        <h3>User Details</h3>
+        <input id="name" placeholder="Full Name">
+        <input id="email" placeholder="Email">
+        <input id="phone" placeholder="Phone Number">
+      </div>
+
+      <div class="section">
+        <h3>Booking Details</h3>
+        <div class="row">
+          <input type="date" id="date">
+          <input type="time" id="time">
+        </div>
+        <input type="number" id="guests" min="1" value="1">
+      </div>
+
+      <div class="price-box">
+        <p>Base Price (per person): ₹<span id="basePrice">500</span></p>
+        <p>Guests: <span id="guestCount">1</span></p>
+        <p><strong>Total Amount: ₹<span id="totalAmount">500</span></strong></p>
+      </div>
+
+      <div class="section payment">
+        <h3>Payment Method</h3>
+        <label><input type="radio" name="payment-method" value="upi" onchange="showPayment('upi')"> UPI</label>
+        <label><input type="radio" name="payment-method" value="card" onchange="showPayment('card')"> Card</label>
+        <label><input type="radio" name="payment-method" value="venue" onchange="showPayment('venue')"> Pay at Venue</label>
+
+        <div class="payment-methods">
+          <!-- UPI -->
+          <div class="payment-upi">
+            <p>Pay via UPI:</p>
+            <input type="text" id="upi-id" value="aforanmol24@ybl" readonly>
+            <button onclick="copyUPI()">Copy UPI ID</button>
+            <input id="upi-txn" placeholder="Enter UPI Transaction ID after payment">
+          </div>
+
+          <!-- Simulated Card -->
+          <div class="payment-card">
+            <p>Pay via Card:</p>
+            <input type="text" id="card-number" placeholder="Card Number (16 digits)">
+            <div class="row">
+              <input type="text" id="card-expiry" placeholder="MM/YY">
+              <input type="text" id="card-cvv" placeholder="CVV">
+            </div>
+            <input type="text" id="card-name" placeholder="Name on Card">
+            <button onclick="payCard()">Pay Now</button>
+          </div>
+
+          <!-- Pay at Venue -->
+          <div class="payment-venue">
+            <p>Pay at Venue:</p>
+            <input type="text" id="venue-note" placeholder="Enter any note (optional)">
+          </div>
+        </div>
+      </div>
+
+      <button onclick="bookTicket()">Book Now</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const phoneInput = document.getElementById("phone");
+const dateInput = document.getElementById("date");
+const timeInput = document.getElementById("time");
+const guestsInput = document.getElementById("guests");
+const basePrice = 500;
+const guestCountDisplay = document.getElementById("guestCount");
+const totalAmountDisplay = document.getElementById("totalAmount");
+
+const upiDiv = document.querySelector(".payment-upi");
+const cardDiv = document.querySelector(".payment-card");
+const venueDiv = document.querySelector(".payment-venue");
+
+guestsInput.addEventListener("input", updatePrice);
+function updatePrice() {
+  const guests = Number(guestsInput.value) || 1;
+  guestCountDisplay.innerText = guests;
+  totalAmountDisplay.innerText = guests * basePrice;
+}
+
+function showPayment(method) {
+  upiDiv.style.display = method === "upi" ? "block" : "none";
+  cardDiv.style.display = method === "card" ? "block" : "none";
+  venueDiv.style.display = method === "venue" ? "block" : "none";
+}
+
+function copyUPI() {
+  const upiInput = document.getElementById("upi-id");
+  upiInput.select();
+  upiInput.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  alert("UPI ID copied!");
+}
+
+// Simulated Card Payment
+function payCard() {
+  const cardNum = document.getElementById("card-number").value.trim();
+  const expiry = document.getElementById("card-expiry").value.trim();
+  const cvv = document.getElementById("card-cvv").value.trim();
+  const name = document.getElementById("card-name").value.trim();
+  const totalAmount = totalAmountDisplay.innerText;
+
+  if (!cardNum || !expiry || !cvv || !name) {
+    alert("Please fill all card details.");
+    return;
+  }
+
+  if (!/^\d{16}$/.test(cardNum)) {
+    alert("Card number must be 16 digits.");
+    return;
+  }
+  if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+    alert("Expiry must be in MM/YY format.");
+    return;
+  }
+  if (!/^\d{3,4}$/.test(cvv)) {
+    alert("CVV must be 3 or 4 digits.");
+    return;
+  }
+
+  alert("Payment successful! Total: ₹" + totalAmount);
+}
+
+function bookTicket() {
+  if (!nameInput.value || !emailInput.value || !phoneInput.value || !dateInput.value || !timeInput.value) {
+    alert("Please fill all required fields.");
+    return;
+  }
+
+  const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
+  if (!selectedMethod) {
+    alert("Please select a payment method.");
+    return;
+  }
+
+  let message = "Booking complete!\nTotal Amount: ₹" + totalAmountDisplay.innerText;
+
+  if (selectedMethod.value === "upi") {
+    const upiTxn = document.getElementById("upi-txn").value;
+    if (!upiTxn) { alert("Please enter your UPI Transaction ID."); return; }
+    message += "\nUPI Transaction ID: " + upiTxn;
+  } else if (selectedMethod.value === "card") {
+    // Assume card payment already done via payCard() button
+    message += "\nPaid via Card.";
+  } else if (selectedMethod.value === "venue") {
+    const venueNote = document.getElementById("venue-note").value;
+    if (venueNote) message += "\nNote: " + venueNote;
+  }
+
+  alert(message);
+}
+</script>
+
+</body>
+</html>

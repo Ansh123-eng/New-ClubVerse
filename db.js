@@ -8,7 +8,7 @@ let redisClient = null;
 
 const connectMongoDB = async () => {
   try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb+srv://anshvohra22_club-verse:Anshvohra2002@cluster0.7am7qih.mongodb.net/club-verse?appName=Cluster0';
+    const mongoUri = process.env.MONGO_URI && process.env.MONGO_URI !== 'mongodb://localhost:27017/clubverse' ? process.env.MONGO_URI : 'mongodb+srv://anshvohra22_club-verse:Anshvohra2002@cluster0.7am7qih.mongodb.net/club-verse?appName=Cluster0';
     await mongoose.connect(mongoUri);
     console.log('MongoDB Atlas Connected to database: club-verse');
   } catch (error) {
