@@ -40,8 +40,8 @@ const app = express();
 const HTTP_PORT = process.env.HTTP_PORT ? Number(process.env.HTTP_PORT) : 8080;
 const HTTPS_PORT = process.env.HTTPS_PORT ? Number(process.env.HTTPS_PORT) : 8443;
 
-// Trust proxy to handle X-Forwarded-For header correctly
-app.set('trust proxy', true);
+// Trust proxy to handle X-Forwarded-For header correctly (set to 1 for Vercel)
+app.set('trust proxy', 1);
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
