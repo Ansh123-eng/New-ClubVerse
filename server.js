@@ -113,7 +113,7 @@ app.post('/api/membership', async (req, res) => {
     const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET || 'your_jwt_secret');
     req.user = decoded;
 
-    const { membershipType, period } = req.body;
+    const { membershipType, membershipPeriod: period } = req.body;
 
     if (!membershipType || !period) {
       return res.status(400).json({ error: 'Membership type and period are required' });
