@@ -25,6 +25,7 @@ import connectDB, { connectRedis, getRedisClient } from './db.js';
 let redisClient;
 import apiRoutes from './api/apiRoutes.js';
 import Membership from './models/membership.js';
+import transporter from './middlewares/mailer.js';
 
 
 
@@ -105,6 +106,75 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
   res.redirect('/login');
+});
+
+app.post('/api/membership', async (req, res) => {
+  try {
+    const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET || 'your_jwt_secret');
+    req.user = decoded;
+
+    const { membershipType, period } = req.body;
+
+    if (!membershipType || !period) {
+      return res.status(400).json({ error: 'Membership type and period are required' });
+    }
+
+    const validTypes = ['gold', 'platinum', 'diamond'];
+    const validPeriods = ['weekly', 'monthly', 'annually'];
+
+    if (!validTypes.includes(membershipType.toLowerCase()) || !validPeriods.includes(period.toLowerCase())) {
+      return res.status(400).json({ error: 'Invalid membership type or period' });
+    }
+
+    const basePrices = {
+      gold: { weekly: 50, monthly: 150, annually: 1500 },
+      platinum: { weekly: 100, monthly: 300, annually: 3000 },
+      diamond: { weekly: 200, monthly: 600, annually: 6000 }
+    };
+
+    const price = basePrices[membershipType.toLowerCase()][period.toLowerCase()];
+
+    const membership = new Membership({
+      userId: req.user.id,
+      membershipType: membershipType.toLowerCase(),
+      period: period.toLowerCase(),
+      price,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + (period === 'weekly' ? 7 : period === 'monthly' ? 30 : 365) * 24 * 60 * 60 * 1000),
+      status: 'active'
+    });
+
+    await membership.save();
+
+    // Send confirmation email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: req.user.email,
+      subject: 'Membership Purchase Confirmation',
+      html: `
+        <h1>Membership Purchase Successful!</h1>
+        <p>Dear ${req.user.name},</p>
+        <p>You have successfully purchased a ${membershipType} membership for ${period} period.</p>
+        <p>Price: ₹${price}</p>
+        <p>Start Date: ${membership.startDate.toDateString()}</p>
+        <p>End Date: ${membership.endDate.toDateString()}</p>
+        <p>Thank you for choosing Club Verse!</p>
+      `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
+
+    res.status(200).json({ message: 'Membership purchased successfully', membership });
+  } catch (error) {
+    console.error('Error purchasing membership:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.use('/api', apiRoutes);
