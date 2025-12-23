@@ -303,7 +303,7 @@
             </div>
 
             <div class="summary-row" id="group-discount-row" style="display: none;">
-              <span>Group Discount (10+ guests)</span>
+              <span>Group Discount (10 guests)</span>
               <span id="group-discount">-₹0</span>
             </div>
 
@@ -547,7 +547,7 @@
 
       if (!guests) return;
 
-      const guestCount = guests === '10+' ? 10 : parseInt(guests);
+      const guestCount = guests === '10' ? 10 : parseInt(guests);
 
       try {
         // First, get user's membership type
