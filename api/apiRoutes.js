@@ -235,6 +235,33 @@ router.post('/reservations', async (req, res) => {
       ...pricing
     });
 
+    // Send confirmation email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: reservation.email,
+      subject: 'Reservation Confirmation',
+      html: `
+        <h1>Reservation Successful!</h1>
+        <p>Dear ${reservation.name},</p>
+        <p>You have successfully made a reservation for ${reservation.club}.</p>
+        <p>Date: ${reservation.date}</p>
+        <p>Time: ${reservation.time}</p>
+        <p>Guests: ${reservation.guests}</p>
+        <p>Total Amount: ₹${reservation.totalAmount}</p>
+        <p>Reservation Date: ${reservation.createdAt.toDateString()}</p>
+        <p>Thank you for choosing Club Verse!</p>
+        <p>Please arrive at the venue on time.</p>
+      `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending reservation email:', error);
+      } else {
+        console.log('Reservation email sent:', info.response);
+      }
+    });
+
     res.status(201).json({ success: true, reservation });
   } catch (err) {
     console.error(err);
