@@ -263,4 +263,25 @@ router.post('/book-tickets', async (req, res) => {
   }
 });
 
+/* ---------------- CONTACT ---------------- */
+
+router.post('/contact', async (req, res) => {
+  try {
+    const { name, email, phone, subject, message } = req.body;
+
+    const query = await Query.create({
+      name,
+      email,
+      phone,
+      subject,
+      message
+    });
+
+    res.status(201).json({ success: true, message: 'Thank you for your feedback! Our team will connect with you soon.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to submit query' });
+  }
+});
+
 export default router;
