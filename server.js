@@ -113,35 +113,28 @@ app.post('/api/membership', async (req, res) => {
     const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET || 'your_jwt_secret');
     req.user = decoded;
 
-    const { membershipType, membershipPeriod: period } = req.body;
+    const { name, email, phone, membershipType, membershipPeriod } = req.body;
 
-    if (!membershipType || !period) {
-      return res.status(400).json({ error: 'Membership type and period are required' });
+    if (!name || !email || !phone || !membershipType || !membershipPeriod) {
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
     const validTypes = ['gold', 'platinum', 'diamond'];
     const validPeriods = ['weekly', 'monthly', 'annually'];
 
-    if (!validTypes.includes(membershipType.toLowerCase()) || !validPeriods.includes(period.toLowerCase())) {
+    if (!validTypes.includes(membershipType.toLowerCase()) || !validPeriods.includes(membershipPeriod.toLowerCase())) {
       return res.status(400).json({ error: 'Invalid membership type or period' });
     }
 
-    const basePrices = {
-      gold: { weekly: 50, monthly: 150, annually: 1500 },
-      platinum: { weekly: 100, monthly: 300, annually: 3000 },
-      diamond: { weekly: 200, monthly: 600, annually: 6000 }
-    };
-
-    const price = basePrices[membershipType.toLowerCase()][period.toLowerCase()];
-
     const membership = new Membership({
       userId: req.user.id,
+      name,
+      email,
+      phone,
       membershipType: membershipType.toLowerCase(),
-      period: period.toLowerCase(),
-      price,
+      membershipPeriod: membershipPeriod.toLowerCase(),
       startDate: new Date(),
-      endDate: new Date(Date.now() + (period === 'weekly' ? 7 : period === 'monthly' ? 30 : 365) * 24 * 60 * 60 * 1000),
-      status: 'active'
+      paymentStatus: 'completed'
     });
 
     await membership.save();
@@ -149,13 +142,13 @@ app.post('/api/membership', async (req, res) => {
     // Send confirmation email
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: req.user.email,
+      to: email,
       subject: 'Membership Purchase Confirmation',
       html: `
         <h1>Membership Purchase Successful!</h1>
-        <p>Dear ${req.user.name},</p>
-        <p>You have successfully purchased a ${membershipType} membership for ${period} period.</p>
-        <p>Price: ₹${price}</p>
+        <p>Dear ${name},</p>
+        <p>You have successfully purchased a ${membershipType} membership for ${membershipPeriod} period.</p>
+        <p>Price: ₹${membership.totalAmount}</p>
         <p>Start Date: ${membership.startDate.toDateString()}</p>
         <p>End Date: ${membership.endDate.toDateString()}</p>
         <p>Thank you for choosing Club Verse!</p>
