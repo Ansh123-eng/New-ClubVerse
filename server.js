@@ -27,8 +27,6 @@ import apiRoutes from './api/apiRoutes.js';
 import Membership from './models/membership.js';
 import transporter from './middlewares/mailer.js';
 
-
-
 const debug = debugModule('clubverse:server');
 debug('Starting server...');
 
@@ -40,9 +38,6 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const app = express();
 const HTTP_PORT = process.env.HTTP_PORT ? Number(process.env.HTTP_PORT) : 8080;
 const HTTPS_PORT = process.env.HTTPS_PORT ? Number(process.env.HTTPS_PORT) : 8443;
-
-// Trust proxy to handle X-Forwarded-For header correctly (set to 1 for Vercel)
-app.set('trust proxy', 1);
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -108,6 +103,8 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
+app.use('/api', apiRoutes);
+
 app.post('/api/membership', async (req, res) => {
   try {
     const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET || 'your_jwt_secret');
@@ -126,6 +123,35 @@ app.post('/api/membership', async (req, res) => {
       return res.status(400).json({ error: 'Invalid membership type or period' });
     }
 
+    const startDate = new Date();
+    let endDate;
+
+    switch (membershipPeriod.toLowerCase()) {
+      case 'weekly':
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 7);
+        break;
+      case 'monthly':
+        endDate = new Date(startDate);
+        endDate.setMonth(startDate.getMonth() + 1);
+        break;
+      case 'annually':
+        endDate = new Date(startDate);
+        endDate.setFullYear(startDate.getFullYear() + 1);
+        break;
+      default:
+        endDate = new Date(startDate);
+        endDate.setMonth(startDate.getMonth() + 1);
+    }
+
+    const basePrices = {
+      gold: { weekly: 50, monthly: 150, annually: 1500 },
+      platinum: { weekly: 80, monthly: 250, annually: 2500 },
+      diamond: { weekly: 120, monthly: 400, annually: 4000 }
+    };
+
+    const totalAmount = basePrices[membershipType.toLowerCase()][membershipPeriod.toLowerCase()];
+
     const membership = new Membership({
       userId: req.user.id,
       name,
@@ -133,7 +159,9 @@ app.post('/api/membership', async (req, res) => {
       phone,
       membershipType: membershipType.toLowerCase(),
       membershipPeriod: membershipPeriod.toLowerCase(),
-      startDate: new Date(),
+      startDate,
+      endDate,
+      totalAmount,
       paymentStatus: 'completed'
     });
 
@@ -170,10 +198,6 @@ app.post('/api/membership', async (req, res) => {
   }
 });
 
-app.use('/api', apiRoutes);
-
-
-
 app.get('/login', csrfProtection, (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -187,9 +211,6 @@ app.get('/register', csrfProtection, (req, res) => {
   res.setHeader('Expires', '0');
   res.render('register', { error: null, csrfToken: req.csrfToken() });
 });
-
-
-
 
 app.use('/api/login', csrfProtection, authLimiter);
 app.use('/api/register', csrfProtection, registerLimiter);

@@ -144,6 +144,17 @@
       border: 1px solid rgba(0, 255, 0, 0.3);
       text-align: center;
     }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 <body>
@@ -233,7 +244,7 @@
       <p id="previewPeriod">Select Membership Period</p>
     </div>
 
-    <form id="membershipForm" action="/api/membership" method="POST">
+    <form id="membershipForm">
       <div class="form-group">
         <label for="name" class="form-label">Full Name</label>
         <input type="text" id="name" name="name" class="form-input" placeholder="Enter your full name" required>
@@ -433,13 +444,113 @@
       membershipTypeSelect.addEventListener('change', updatePreview);
       membershipPeriodSelect.addEventListener('change', updatePreview);
 
-      // Form submission with loading
+      // Form submission with loading and AJAX
       const form = document.getElementById('membershipForm');
-      form.addEventListener('submit', function(e) {
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
         const submitBtn = form.querySelector('.submit-btn');
+        const originalBtnText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         submitBtn.disabled = true;
+
+        try {
+          // Get form data
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData.entries());
+
+          // Submit via AJAX
+          const response = await fetch('/api/membership', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            // Show success message
+            showCongratulationMessage(result.membership);
+
+            // Redirect to dashboard after 3 seconds
+            setTimeout(() => {
+              window.location.href = '/api/dashboard';
+            }, 3000);
+          } else {
+            // Show error message
+            showErrorMessage(result.error || 'Failed to purchase membership');
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+          }
+        } catch (error) {
+          console.error('Error submitting form:', error);
+          showErrorMessage('Network error. Please try again.');
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.disabled = false;
+        }
       });
+
+      function showCongratulationMessage(membership) {
+        const container = document.querySelector('.membership-form-container');
+
+        // Hide the form
+        document.getElementById('membershipForm').style.display = 'none';
+
+        // Create congratulation message
+        const congratsDiv = document.createElement('div');
+        congratsDiv.style.cssText = `
+          text-align: center;
+          padding: 40px 20px;
+          background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
+          border-radius: 20px;
+          border: 2px solid #d4af37;
+          animation: fadeIn 0.5s ease;
+        `;
+
+        congratsDiv.innerHTML = `
+          <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
+          <h2 style="color: #d4af37; font-size: 2.5rem; margin-bottom: 20px; font-family: 'Playfair Display', serif;">
+            Congratulations!
+          </h2>
+          <p style="color: white; font-size: 1.2rem; margin-bottom: 15px;">
+            Your ${membership.membershipType.charAt(0).toUpperCase() + membership.membershipType.slice(1)} membership has been successfully purchased!
+          </p>
+          <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0;">
+              <strong>Membership Type:</strong> ${membership.membershipType.charAt(0).toUpperCase() + membership.membershipType.slice(1)}
+            </p>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0;">
+              <strong>Period:</strong> ${membership.membershipPeriod.charAt(0).toUpperCase() + membership.membershipPeriod.slice(1)}
+            </p>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0;">
+              <strong>Price:</strong> ₹${membership.totalAmount}
+            </p>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0;">
+              <strong>Valid Until:</strong> ${new Date(membership.endDate).toLocaleDateString()}
+            </p>
+          </div>
+          <p style="color: #4ecdc4; font-size: 1.1rem;">
+            Redirecting to dashboard in a few seconds...
+          </p>
+        `;
+
+        container.appendChild(congratsDiv);
+      }
+
+      function showErrorMessage(message) {
+        // Remove existing error messages
+        const existingError = document.querySelector('.error-message');
+        if (existingError) existingError.remove();
+
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+
+        const form = document.getElementById('membershipForm');
+        form.parentNode.insertBefore(errorDiv, form);
+      }
 
       console.log('🎉 Club Verse Membership - Unlock the Night! 🎉');
     });
