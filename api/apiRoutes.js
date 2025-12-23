@@ -203,6 +203,10 @@ router.post('/reservations', async (req, res) => {
   try {
     const { name, email, phone, date, time, guests, club } = req.body;
 
+    if (!name || !email || !phone || !date || !time || !guests || !club) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
     if (date) {
       const [year, month, day] = date.split('-').map(Number);
       const selectedDate = new Date(year, month - 1, day);
