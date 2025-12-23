@@ -126,6 +126,35 @@ app.post('/api/membership', async (req, res) => {
       return res.status(400).json({ error: 'Invalid membership type or period' });
     }
 
+    // Calculate end date and pricing
+    const startDate = new Date();
+    let endDate;
+    switch (membershipPeriod.toLowerCase()) {
+      case 'weekly':
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 7);
+        break;
+      case 'monthly':
+        endDate = new Date(startDate);
+        endDate.setMonth(startDate.getMonth() + 1);
+        break;
+      case 'annually':
+        endDate = new Date(startDate);
+        endDate.setFullYear(startDate.getFullYear() + 1);
+        break;
+      default:
+        endDate = new Date(startDate);
+        endDate.setMonth(startDate.getMonth() + 1);
+    }
+
+    const basePrices = {
+      gold: { weekly: 50, monthly: 150, annually: 1500 },
+      platinum: { weekly: 80, monthly: 250, annually: 2500 },
+      diamond: { weekly: 120, monthly: 400, annually: 4000 }
+    };
+
+    const totalAmount = basePrices[membershipType.toLowerCase()][membershipPeriod.toLowerCase()];
+
     const membership = new Membership({
       userId: req.user.id,
       name,
@@ -133,7 +162,9 @@ app.post('/api/membership', async (req, res) => {
       phone,
       membershipType: membershipType.toLowerCase(),
       membershipPeriod: membershipPeriod.toLowerCase(),
-      startDate: new Date(),
+      startDate,
+      endDate,
+      totalAmount,
       paymentStatus: 'completed'
     });
 
