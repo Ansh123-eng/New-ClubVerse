@@ -24,12 +24,36 @@ jest.mock('../../models/reservation.js', () => ({
     name: 'Jane Doe',
     email: 'jane@example.com',
     date: '2024-12-31',
-    time: '20:00'
+    time: '20:00',
+    guests: 2,
+    club: 'Test Club',
+    totalAmount: 100,
+    createdAt: new Date()
   })),
 }));
 
 jest.mock('../../models/membership.js', () => ({
   findOne: jest.fn(() => Promise.resolve(null)),
+}));
+
+jest.mock('../../models/query.js', () => ({
+  create: jest.fn(),
+}));
+
+jest.mock('../../models/club.js', () => ({
+  find: jest.fn(),
+  findOne: jest.fn(),
+}));
+
+jest.mock('../../models/ticketBooking.js', () => ({
+  create: jest.fn(),
+}));
+
+jest.mock('../../middlewares/mailer.js', () => ({
+  __esModule: true,
+  default: {
+    sendMail: jest.fn((mailOptions, cb) => cb(null, { response: 'Mock email sent' })),
+  },
 }));
 
 jest.mock('../../middlewares/auth.js', () => ({
