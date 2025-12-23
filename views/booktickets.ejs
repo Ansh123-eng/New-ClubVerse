@@ -3,132 +3,640 @@
 <head>
 <meta charset="UTF-8" />
 <title>Book Tickets | Club Verse</title>
-
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link rel="stylesheet" href="/styles/booktable.css">
 <style>
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; width: 100%; overflow-x: hidden; font-family: Arial, sans-serif; }
-body {
-  min-height: 100vh;
-  background:
-    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
-    url('/images/ticket.webp') center/cover no-repeat fixed;
+.nav {
+  display: flex;
+  background-color: transparent;
+  padding: 20px 0px;
+  position: absolute;
+  width: 100%;
+  top: 0;
+  z-index: 10;
 }
-.nav { position: fixed; top: 0; left: 0; width: 100%; padding: 20px 40px; display: flex; align-items: center; background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.8), transparent); z-index: 1000; }
-.logo img { width: 170px; }
-.menu { margin-left: auto; margin-right: 60px; }
-.menu ul { display: flex; gap: 60px; list-style: none; margin: 0; padding: 0; }
-.menu ul li a { color: #fff; text-decoration: none; padding: 6px 20px; border: 1px solid #fff; border-radius: 8px; }
-.main-wrapper { padding-top: 180px; display: flex; justify-content: center; }
-.page-layout { display: flex; gap: 40px; max-width: 1300px; width: 100%; padding: 20px; }
-.info-card { width: 420px; background: rgba(16,30,58,0.95); padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-.club-name { font-size: 46px; color: #fff; margin-bottom: 20px; }
-.event-name { font-size: 30px; color: #cbd5e1; }
-.ticket-box { flex: 1; background: rgba(16,30,58,0.95); padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 20px; }
-h2, h3 { color: #fff; }
-.section { margin-bottom: 10px; }
-input, select { width: 100%; padding: 12px; margin-top: 8px; border-radius: 6px; border: none; }
-.row { display: flex; gap: 10px; }
-.price-box { background: #f4f4f4; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-.payment label { color: #fff; display: block; margin-top: 8px; cursor: pointer; }
-button { width: 100%; padding: 14px; background: #2c3e50; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
 
-.payment-methods { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
-.payment-card, .payment-upi, .payment-venue { background: rgba(20,40,70,0.95); padding: 20px; border-radius: 12px; display: none; }
-.payment-card input { margin-top: 8px; }
+.logo {
+  display: flex;
+  align-items: center;
+}
 
-@media (max-width: 900px) {
-  .page-layout { flex-direction: column; align-items: center; }
-  .info-card, .ticket-box { width: 100%; }
+.logo img {
+  width: 180px;
+  height: 130px;
+  margin-top: 2px;
+  margin-left: -85%;
+  margin-top: -15px;
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+}
+
+.menu ul {
+  display: flex;
+  gap: 80px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu ul li a {
+  text-decoration: none;
+  color: white;
+  background: transparent;
+  padding: 6px 20px;
+  border: solid;
+  border-radius: 8px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.menu ul li a:hover {
+  background-color: aliceblue;
+  color: black;
+}
+
+.page-container {
+  max-width: 1200px;
+  margin: 50px auto;
+  padding: 0 20px;
+}
+
+.booking-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.booking-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(to right, #d4af37, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.booking-header .tagline {
+  font-size: 1rem;
+  color: #ccc;
+  font-weight: 300;
+  background: linear-gradient(to right, #d4af37, #ffd700);
+  -webkit-background-clip: text;
+  color: transparent;
+  background-clip: text;
+}
+
+.booking-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.club-info {
+  flex: 1;
+  min-width: 300px;
+  background: linear-gradient(135deg, rgba(28, 20, 56, 0.95) 0%, rgba(35, 37, 75, 0.95) 100%);
+  padding: 30px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+  box-shadow: inset 0 0 40px rgba(114, 51, 212, 0.15);
+}
+
+.club-image-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  height: 250px;
+  margin-bottom: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+.club-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.club-image-container:hover .club-image {
+  transform: scale(1.05);
+}
+
+.club-info h2 {
+  font-family: 'Playfair Display', serif;
+  color: #fff;
+  margin-bottom: 20px;
+  font-size: 28px;
+  position: relative;
+  padding-bottom: 15px;
+  background: linear-gradient(to right, #d4af37, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.club-info h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(to right, #d4af37, #ffd700);
+  border-radius: 2px;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 18px;
+  align-items: center;
+}
+
+.info-row i {
+  color: #f39c12;
+  margin-right: 15px;
+  width: 20px;
+  text-align: center;
+  font-size: 18px;
+  background: linear-gradient(to right, #fe0083, #00d9ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.info-row span {
+  font-size: 15px;
+  color: #eee;
+}
+
+.booking-form {
+  flex: 1;
+  min-width: 320px;
+  background: linear-gradient(135deg, rgba(17, 23, 43, 0.95) 0%, rgba(33, 33, 78, 0.95) 100%);
+  padding: 30px;
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: inset 0 0 40px rgba(0, 123, 255, 0.1);
+}
+
+.booking-form h2 {
+  font-family: 'Playfair Display', serif;
+  color: #fff;
+  margin-bottom: 25px;
+  font-size: 28px;
+  position: relative;
+  padding-bottom: 15px;
+  background: linear-gradient(to right, #d4af37, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.booking-form h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(to right, #d4af37, #ffd700);
+  border-radius: 2px;
+}
+
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #eee;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(43, 47, 69, 0.7) 0%, rgba(30, 40, 70, 0.7) 100%);
+  color: #fff;
+  font-size: 15px;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: rgba(229, 46, 113, 0.5);
+  box-shadow: 0 0 0 2px rgba(229, 46, 113, 0.2);
+}
+
+.date-time-container {
+  display: flex;
+  gap: 20px;
+}
+
+.date-time-container .form-group {
+  flex: 1;
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.summary-section {
+  margin-top: 30px;
+  background: linear-gradient(135deg, rgba(36, 0, 70, 0.7) 0%, rgba(0, 44, 92, 0.7) 100%);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(114, 137, 218, 0.15);
+}
+
+.summary-title {
+  color: #fff;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.summary-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(to right, #fd746c, #ff9068);
+  border-radius: 2px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.total-row .total-amount {
+  background: linear-gradient(to right, #fd746c, #ff9068);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%);
+  color: #fff;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.3s ease;
+  margin-top: 25px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 10px rgba(212, 175, 55, 0.35);
+}
+
+.submit-btn:hover {
+  background: linear-gradient(135deg, #b8941f 0%, #e6c200 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(212, 175, 55, 0.45);
+}
+
+.booking-confirmation {
+  text-align: center;
+  margin-top: 15px;
+  color: #ccc;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.payment-card, .payment-upi, .payment-venue {
+  background: linear-gradient(135deg, rgba(43, 47, 69, 0.7) 0%, rgba(30, 40, 70, 0.7) 100%);
+  padding: 20px;
+  border-radius: 12px;
+  display: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.payment-card input {
+  margin-top: 8px;
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(43, 47, 69, 0.7) 0%, rgba(30, 40, 70, 0.7) 100%);
+  color: #fff;
+  font-size: 15px;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+}
+
+.payment-card input:focus {
+  outline: none;
+  border-color: rgba(229, 46, 113, 0.5);
+  box-shadow: 0 0 0 2px rgba(229, 46, 113, 0.2);
+}
+
+.payment label {
+  color: #fff;
+  display: block;
+  margin-top: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.copy-btn {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.2) 0%, rgba(41, 128, 185, 0.2) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  color: #3498db;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+  padding: 8px 16px;
+}
+
+.copy-btn:hover {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.3) 0%, rgba(41, 128, 185, 0.3) 100%);
+  transform: translateY(-2px);
+}
+
+.pay-btn {
+  background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 15px;
+  box-shadow: 0 4px 10px rgba(212, 175, 55, 0.35);
+}
+
+.pay-btn:hover {
+  background: linear-gradient(135deg, #b8941f 0%, #e6c200 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(212, 175, 55, 0.45);
+}
+
+@media (max-width: 768px) {
+  .booking-container {
+    flex-direction: column;
+  }
+
+  .date-time-container {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .page-container {
+    margin: 30px auto;
+  }
+
+  .booking-header h1 {
+    font-size: 2.2rem;
+  }
 }
 </style>
 </head>
 
 <body>
-
-<div class="nav">
-  <div class="logo">
-    <img src="/images/club-logo-2.png" alt="Logo">
-  </div>
-  <div class="menu">
-    <ul>
-      <li><a href="/api/dashboard">Home</a></li>
-      <li><a href="/api/bar">Bars</a></li>
-      <li><a href="/">Logout</a></li>
-    </ul>
-  </div>
-</div>
-
-<div class="main-wrapper">
-  <div class="page-layout">
-
-    <div class="info-card">
-      <h1 class="club-name"><%= club %></h1>
-      <h2 class="event-name"><%= event %></h2>
-    </div>
-
-    <div class="ticket-box">
-      <h2>🎟️ Book Tickets</h2>
-
-      <div class="section">
-        <h3>User Details</h3>
-        <input id="name" placeholder="Full Name">
-        <input id="email" placeholder="Email">
-        <input id="phone" placeholder="Phone Number">
-      </div>
-
-      <div class="section">
-        <h3>Booking Details</h3>
-        <div class="row">
-          <input type="date" id="date">
-          <input type="time" id="time">
-        </div>
-        <input type="number" id="guests" min="1" value="1">
-      </div>
-
-      <div class="price-box">
-        <p>Base Price (per person): ₹<span id="basePrice">500</span></p>
-        <p>Guests: <span id="guestCount">1</span></p>
-        <p><strong>Total Amount: ₹<span id="totalAmount">500</span></strong></p>
-      </div>
-
-      <div class="section payment">
-        <h3>Payment Method</h3>
-        <label><input type="radio" name="payment-method" value="upi" onchange="showPayment('upi')"> UPI</label>
-        <label><input type="radio" name="payment-method" value="card" onchange="showPayment('card')"> Card</label>
-        <label><input type="radio" name="payment-method" value="venue" onchange="showPayment('venue')"> Pay at Venue</label>
-
-        <div class="payment-methods">
-          <!-- UPI -->
-          <div class="payment-upi">
-            <p>Pay via UPI:</p>
-            <input type="text" id="upi-id" value="aforanmol24@ybl" readonly>
-            <button onclick="copyUPI()">Copy UPI ID</button>
-            <input id="upi-txn" placeholder="Enter UPI Transaction ID after payment">
-          </div>
-
-          <!-- Simulated Card -->
-          <div class="payment-card">
-            <p>Pay via Card:</p>
-            <input type="text" id="card-number" placeholder="Card Number (16 digits)">
-            <div class="row">
-              <input type="text" id="card-expiry" placeholder="MM/YY">
-              <input type="text" id="card-cvv" placeholder="CVV">
+  <div class="page-container">
+    <div class="booking-header">
+        <div class="nav">
+            <div class="logo">
+              <img src="/images/club-logo-2.png" alt="Logo">
             </div>
-            <input type="text" id="card-name" placeholder="Name on Card">
-            <button onclick="payCard()">Pay Now</button>
-          </div>
+            <div class="menu" id="menu-nav">
+                <ul>
+                  <li><a href="/api/dashboard">Home</a></li>
+                  <li><a href="/api/bar">Bars</a></li>
+                  <li><a href="/">Logout</a></li>
+                </ul>
+              </div>
+        </div>
+        <br><br><br><br>
+      <h1>Book Your Tickets</h1>
+      <p class="tagline">Experience luxury nightlife at its finest</p>
+    </div>
 
-          <!-- Pay at Venue -->
-          <div class="payment-venue">
-            <p>Pay at Venue:</p>
-            <input type="text" id="venue-note" placeholder="Enter any note (optional)">
-          </div>
+    <div class="booking-container">
+      <!-- Club Information Section -->
+      <div class="club-info">
+        <div class="club-image-container">
+          <img src="/images/<%= club.toLowerCase().replace(/\s+/g, '') %>.jpg" id="club-image" class="club-image" alt="<%= club %> Atmosphere" onerror="this.src='/images/bar-bg3.jpeg'">
+        </div>
+
+        <h2 id="club-name"><%= club %></h2>
+
+        <div class="info-row">
+          <i class="fas fa-map-marker-alt"></i>
+          <span id="club-location">Ludhiana, City Center</span>
+        </div>
+
+        <div class="info-row">
+          <i class="far fa-clock"></i>
+          <span id="club-hours">12:00 PM - 03:00 AM</span>
+        </div>
+
+        <div class="info-row">
+          <i class="fas fa-star"></i>
+          <span id="club-rating">4.5 (120 reviews)</span>
+        </div>
+
+        <div class="info-row">
+          <i class="fas fa-utensils"></i>
+          <span>Multicuisine</span>
+        </div>
+
+        <div class="info-row">
+          <i class="fas fa-music"></i>
+          <span><%= event %></span>
         </div>
       </div>
 
-      <button onclick="bookTicket()">Book Now</button>
-    </div>
+      <!-- Booking Form Section -->
+      <div class="booking-form">
+        <h2>Reserve Your Tickets</h2>
+        <form id="ticket-booking-form">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+          </div>
 
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" required>
+          </div>
+
+          <div class="date-time-container">
+            <div class="form-group">
+              <label for="date">Date</label>
+              <input type="date" id="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+              <label for="time">Time</label>
+              <input type="time" id="time" name="time" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="guests">Number of Tickets</label>
+            <select id="guests" name="guests" required>
+              <option value="">Select number of tickets</option>
+              <option value="1">1 Ticket</option>
+              <option value="2">2 Tickets</option>
+              <option value="3">3 Tickets</option>
+              <option value="4">4 Tickets</option>
+              <option value="5">5 Tickets</option>
+              <option value="6">6 Tickets</option>
+              <option value="7">7 Tickets</option>
+              <option value="8">8 Tickets</option>
+              <option value="9">9 Tickets</option>
+              <option value="10+">10+ Tickets</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="special-requests">Special Requests (Optional)</label>
+            <textarea id="special-requests" name="special-requests" placeholder="Any special requests or preferences..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Payment Method</label>
+            <label><input type="radio" name="payment-method" value="upi" onchange="showPayment('upi')"> UPI</label>
+            <label><input type="radio" name="payment-method" value="card" onchange="showPayment('card')"> Card</label>
+            <label><input type="radio" name="payment-method" value="venue" onchange="showPayment('venue')"> Pay at Venue</label>
+          </div>
+
+          <div class="payment-methods">
+            <!-- UPI -->
+            <div class="payment-upi">
+              <p>Pay via UPI:</p>
+              <input type="text" id="upi-id" value="aforanmol24@ybl" readonly>
+              <button type="button" class="copy-btn" onclick="copyUPI()">Copy UPI ID</button>
+              <input id="upi-txn" placeholder="Enter UPI Transaction ID after payment">
+            </div>
+
+            <!-- Simulated Card -->
+            <div class="payment-card">
+              <p>Pay via Card:</p>
+              <input type="text" id="card-number" placeholder="Card Number (16 digits)">
+              <div class="date-time-container">
+                <input type="text" id="card-expiry" placeholder="MM/YY">
+                <input type="text" id="card-cvv" placeholder="CVV">
+              </div>
+              <input type="text" id="card-name" placeholder="Name on Card">
+              <button type="button" class="pay-btn" onclick="payCard()">Pay Now</button>
+            </div>
+
+            <!-- Pay at Venue -->
+            <div class="payment-venue">
+              <p>Pay at Venue:</p>
+              <input type="text" id="venue-note" placeholder="Enter any note (optional)">
+            </div>
+          </div>
+
+          <div class="summary-section">
+            <h3 class="summary-title">
+              <i class="fas fa-calculator"></i>
+              Booking Summary
+            </h3>
+
+            <div class="summary-row">
+              <span>Base Amount (per ticket)</span>
+              <span id="base-amount">₹500</span>
+            </div>
+
+            <div class="summary-row">
+              <span>Number of Tickets</span>
+              <span id="guest-count">0</span>
+            </div>
+
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span id="subtotal">₹0</span>
+            </div>
+
+            <div class="total-row">
+              <span>Total Amount</span>
+              <span id="total-amount">₹0</span>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">BOOK TICKETS</button>
+
+          <div class="booking-confirmation">
+            <p>* Ticket amount is fully adjustable against your final bill</p>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<!-- Congratulation Modal -->
+<div id="congratsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+  <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%); border-radius: 20px; border: 2px solid #d4af37; padding: 40px; text-align: center; max-width: 500px; width: 90%; animation: fadeIn 0.5s ease;">
+    <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
+    <h2 style="color: #d4af37; font-size: 2.5rem; margin-bottom: 20px; font-family: 'Playfair Display', serif;">Congratulations!</h2>
+    <p style="color: white; font-size: 1.2rem; margin-bottom: 15px;">Your ticket booking has been successful!</p>
+    <div id="bookingDetails" style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin: 20px 0;">
+      <!-- Booking details will be populated here -->
+    </div>
+    <p style="color: #4ecdc4; font-size: 1.1rem;">Redirecting to club page in a few seconds...</p>
   </div>
 </div>
 
@@ -140,18 +648,24 @@ const dateInput = document.getElementById("date");
 const timeInput = document.getElementById("time");
 const guestsInput = document.getElementById("guests");
 const basePrice = 500;
-const guestCountDisplay = document.getElementById("guestCount");
-const totalAmountDisplay = document.getElementById("totalAmount");
+const guestCountDisplay = document.getElementById("guest-count");
+const totalAmountDisplay = document.getElementById("total-amount");
+const subtotalDisplay = document.getElementById("subtotal");
+const baseAmountDisplay = document.getElementById("base-amount");
 
 const upiDiv = document.querySelector(".payment-upi");
 const cardDiv = document.querySelector(".payment-card");
 const venueDiv = document.querySelector(".payment-venue");
 
-guestsInput.addEventListener("input", updatePrice);
+guestsInput.addEventListener("change", updatePrice);
 function updatePrice() {
-  const guests = Number(guestsInput.value) || 1;
+  const guests = guestsInput.value === '10+' ? 10 : Number(guestsInput.value) || 0;
+  const subtotal = guests * basePrice;
+
   guestCountDisplay.innerText = guests;
-  totalAmountDisplay.innerText = guests * basePrice;
+  baseAmountDisplay.innerText = `₹${basePrice}`;
+  subtotalDisplay.innerText = `₹${subtotal}`;
+  totalAmountDisplay.innerText = `₹${subtotal}`;
 }
 
 function showPayment(method) {
@@ -197,7 +711,10 @@ function payCard() {
   alert("Payment successful! Total: ₹" + totalAmount);
 }
 
-function bookTicket() {
+// Form submission handler
+document.getElementById('ticket-booking-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
   if (!nameInput.value || !emailInput.value || !phoneInput.value || !dateInput.value || !timeInput.value) {
     alert("Please fill all required fields.");
     return;
@@ -209,21 +726,91 @@ function bookTicket() {
     return;
   }
 
-  let message = "Booking complete!\nTotal Amount: ₹" + totalAmountDisplay.innerText;
-
+  // Validate payment details
   if (selectedMethod.value === "upi") {
     const upiTxn = document.getElementById("upi-txn").value;
     if (!upiTxn) { alert("Please enter your UPI Transaction ID."); return; }
-    message += "\nUPI Transaction ID: " + upiTxn;
   } else if (selectedMethod.value === "card") {
     // Assume card payment already done via payCard() button
-    message += "\nPaid via Card.";
   } else if (selectedMethod.value === "venue") {
-    const venueNote = document.getElementById("venue-note").value;
-    if (venueNote) message += "\nNote: " + venueNote;
+    // Pay at venue - no validation needed
   }
 
-  alert(message);
+  // Get club name from URL or EJS variable
+  const urlParams = new URLSearchParams(window.location.search);
+  const clubName = urlParams.get('club') || '<%= club %>' || 'UNKNOWN_CLUB';
+
+  // Prepare booking data
+  const bookingData = {
+    name: nameInput.value,
+    email: emailInput.value,
+    phone: phoneInput.value,
+    club: clubName,
+    eventId: urlParams.get('event') || '<%= event %>' || 'UNKNOWN_EVENT',
+    tickets: guestsInput.value === '10+' ? 10 : Number(guestsInput.value) || 1,
+    membershipType: 'none', // Default, can be enhanced later
+    discountCode: null,
+    totalAmount: Number(totalAmountDisplay.innerText.replace('₹', '')) || 0,
+    paymentMethod: selectedMethod.value,
+    upiTxnId: selectedMethod.value === "upi" ? document.getElementById("upi-txn").value : null,
+    venueNote: selectedMethod.value === "venue" ? document.getElementById("venue-note").value : null
+  };
+
+  try {
+    const response = await fetch('/api/book-tickets', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bookingData),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      // Show congratulation modal
+      showCongratulationModal(result.booking);
+    } else {
+      alert('Error: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Error submitting booking:', error);
+    alert('An error occurred. Please try again.');
+  }
+});
+
+function showCongratulationModal(booking) {
+  const modal = document.getElementById('congratsModal');
+  const detailsDiv = document.getElementById('bookingDetails');
+
+  // Populate booking details
+  detailsDiv.innerHTML = `
+    <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0;">
+      <strong>Name:</strong> ${booking.name}
+    </p>
+    <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0;">
+      <strong>Club:</strong> ${booking.club}
+    </p>
+    <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0;">
+      <strong>Event:</strong> ${booking.eventId}
+    </p>
+    <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0;">
+      <strong>Tickets:</strong> ${booking.tickets}
+    </p>
+    <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0;">
+      <strong>Total Amount:</strong> ₹${booking.totalAmount}
+    </p>
+    <p style="color: rgba(255, 255, 255, 0.9); margin: 5px 0;">
+      <strong>Booking Date:</strong> ${new Date(booking.createdAt).toLocaleDateString()}
+    </p>
+  `;
+
+  modal.style.display = 'flex';
+
+  // Redirect after 4 seconds to bars page
+  setTimeout(() => {
+    window.location.href = '/api/bar';
+  }, 2000);
 }
 </script>
 

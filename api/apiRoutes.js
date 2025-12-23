@@ -203,6 +203,17 @@ router.post('/reservations', async (req, res) => {
   try {
     const { name, email, phone, date, time, guests, club } = req.body;
 
+    if (date) {
+      const [year, month, day] = date.split('-').map(Number);
+      const selectedDate = new Date(year, month - 1, day);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        return res.status(400).json({ error: 'Reservations are only allowed for today and future dates' });
+      }
+    }
+
     const pricing = calculatePricing(
       Number(guests),
       'none',
@@ -242,6 +253,19 @@ router.post('/book-tickets', async (req, res) => {
   try {
     console.log('🟡 RAW BOOKING BODY:', req.body);
 
+    const { date } = req.body;
+
+    if (date) {
+      const [year, month, day] = date.split('-').map(Number);
+      const selectedDate = new Date(year, month - 1, day);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        return res.status(400).json({ error: 'Ticket bookings are only allowed for today and future dates' });
+      }
+    }
+
     const booking = await TicketBooking.create({
       name: req.body.name,
       email: req.body.email,
@@ -249,12 +273,38 @@ router.post('/book-tickets', async (req, res) => {
       club: req.body.club || 'UNKNOWN_CLUB',
       eventId: req.body.eventId || req.body.event || 'UNKNOWN_EVENT',
       tickets: Number(req.body.tickets || 1),
+      date: req.body.date,
       membershipType: req.body.membershipType || 'none',
       discountCode: req.body.discountCode || null,
       totalAmount: Number(req.body.totalAmount || 0)
     });
 
     console.log('✅ TICKET SAVED:', booking._id);
+
+    // Send confirmation email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: booking.email,
+      subject: 'Ticket Booking Confirmation',
+      html: `
+        <h1>Ticket Booking Successful!</h1>
+        <p>Dear ${booking.name},</p>
+        <p>You have successfully booked ${booking.tickets} ticket(s) for ${booking.club}.</p>
+        <p>Event: ${booking.eventId}</p>
+        <p>Total Amount: ₹${booking.totalAmount}</p>
+        <p>Booking Date: ${booking.createdAt.toDateString()}</p>
+        <p>Thank you for choosing Club Verse!</p>
+        <p>Please show this email at the venue for entry.</p>
+      `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
 
     res.status(201).json({ success: true, booking });
   } catch (err) {
