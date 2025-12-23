@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Table Booking - Club-Verse</title>
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+  />
+  <link rel="stylesheet" href="/styles/booktable.css">
+  <style>
+    /* Reset & base */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1e2642 0%, #121830 100%);
+  color: #f0f0f0;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 150px; /* space for nav */
+}
+
+/* NAVIGATION */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px 60px;
+  background: rgba(30, 38, 66, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.logo img {
+  width: 160px;
+  height: auto;
+  margin-left: 0;
+  margin-top: 0;
+  transition: transform 0.3s ease;
+}
+.logo img:hover {
+  transform: scale(1.05);
+}
+
+.menu ul {
+  display: flex;
+  gap: 50px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu ul li a {
+  text-decoration: none;
+  color: #f0f0f0;
+  padding: 8px 18px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.menu ul li a:hover,
+.menu ul li a:focus {
+  background-color: #e91e63;
+  border-color: #e91e63;
+  color: white;
+  outline: none;
+}
+
+/* PAGE CONTAINER */
+.page-container {
+  max-width: 1200px;
+  width: 90%;
+  margin-bottom: 60px;
+}
+
+/* HEADER */
+.booking-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.booking-header h1 {
+  font-size: 3.2rem;
+  margin-bottom: 8px;
+  color: #e91e63;
+  letter-spacing: 2px;
+  font-weight: 700;
+  user-select: none;
+}
+
+.tagline {
+  font-size: 1.3rem;
+  color: #ccc;
+  font-style: italic;
+  user-select: none;
+}
+
+/* BOOKING CONTAINER: split layout */
+.booking-container {
+  display: flex;
+  gap: 50px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* CLUB INFO SIDE */
+.club-info {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 30px;
+  width: 380px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  color: #e0e0e0;
+  user-select: none;
+}
+
+.club-image-container {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  background: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.club-image-container img.club-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 15px;
+  transition: transform 0.4s ease;
+}
+.club-image-container img.club-image:hover {
+  transform: scale(1.05);
+}
+
+#club-name {
+  font-size: 1.9rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #e91e63;
+  text-align: center;
+}
+
+/* Info rows */
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  color: #ccc;
+}
+
+.info-row i {
+  color: #e91e63;
+  font-size: 1.3rem;
+}
+
+/* Table availability section */
+.table-availability {
+  margin-top: 30px;
+}
+
+.availability-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #e91e63;
+  margin-bottom: 20px;
+}
+
+.tables-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.tables-count {
+  text-align: center;
+  color: #f0f0f0;
+}
+
+.tables-number {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #e91e63;
+  user-select: text;
+}
+
+.tables-label {
+  font-size: 0.9rem;
+  color: #bbb;
+  user-select: none;
+}
+
+.availability-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 8px 18px;
+  border-radius: 12px;
+  user-select: none;
+}
+
+.availability-status.high {
+  background-color: #4caf50a0;
+  color: #fff;
+}
+
+.availability-status.low {
+  background-color: #f4433660;
+  color: #fff;
+}
+
+.availability-status i {
+  font-size: 1.3rem;
+}
+
+.availability-meter {
+  background: #444;
+  height: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 25px;
+}
+
+.availability-progress {
+  background: #e91e63;
+  height: 100%;
+  width: 0;
+  transition: width 0.5s ease;
+}
+
+.availability-times {
+  user-select: none;
+}
+
+.time-slots-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #e91e63;
+}
+
+.time-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.time-slot {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  min-width: 110px;
+  text-align: center;
+  color: #eee;
+}
+
+.time-slot:hover {
+  background-color: #e91e63;
+  color: white;
+}
+
+.time-slot.low-availability {
+  background-color: #b0002040;
+  color: #ffaaaa;
+  cursor: default;
+  pointer-events: none;
+}
+
+.table-count {
+  display: block;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  color: #f0a1b7;
+}
+
+/* Refresh button */
+.refresh-availability {
+  margin-top: 25px;
+  background: #e91e63;
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 12px 22px;
+  border-radius: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 6px 15px #e91e6399;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  justify-content: center;
+  user-select: none;
+}
+
+.refresh-availability:hover {
+  background-color: #c2185b;
+}
+
+/* BOOKING FORM SIDE */
+.booking-form {
+  background: rgba(255, 255, 255, 0.07);
+  padding: 30px 35px;
+  border-radius: 20px;
+  width: 480px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  color: #f0f0f0;
+}
+
+.booking-form h2 {
+  font-size: 2rem;
+  margin-bottom: 25px;
+  color: #e91e63;
+  font-weight: 700;
+  user-select: none;
+}
+
+/* Form groups */
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #ddd;
+  user-select: none;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="date"],
+.form-group input[type="time"],
+.form-group select,
+.form-group textarea {
+  padding: 12px 15px;
+  font-size: 1rem;
+  border-radius: 12px;
+  border: none;
+  background: #2a3354;
+  color: #eee;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  resize: vertical;
+  min-height: 38px;
+  outline-offset: 2px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  background-color: #3c456f;
+  box-shadow: 0 0 10px #e91e63aa;
+  outline: none;
+}
+
+/* Date and time container for side by side inputs */
+.date-time-container {
+  display: flex;
+  gap: 20px;
+}
+
+.date-time-container .form-group {
+  flex: 1;
+}
+
+/* Textarea special */
+textarea {
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* Booking summary */
+.summary-section {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px 25px;
+  border-radius: 18px;
+  margin-top: 25px;
+  color: #eee;
+  user-select: none;
+}
+
+.summary-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #e91e63;
+}
+
+.summary-row,
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-weight: 500;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #3f3f52;
+}
+
+.total-row {
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: #f48fb1;
+  border-bottom: none;
+  margin-top: 12px;
+}
+
+/* Hide discount rows by default */
+#membership-discount-row,
+#group-discount-row {
+  display: none;
+}
+
+/* Submit button */
+.submit-btn {
+  margin-top: 30px;
+  width: 100%;
+  background-color: #e91e63;
+  color: white;
+  border: none;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 14px 0;
+  border-radius: 18px;
+  cursor: pointer;
+  box-shadow: 0 7px 20px #e91e6399;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  user-select: none;
+}
+
+.submit-btn:hover,
+.submit-btn:focus {
+  background-color: #c2185b;
+  box-shadow: 0 10px 28px #c2185bbb;
+  outline: none;
+}
+
+/* Booking confirmation text */
+.booking-confirmation {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: #bbb;
+  text-align: center;
+  font-style: italic;
+  user-select: none;
+}
+
+/* FOOTER */
+.footer {
+  background-color: #121830;
+  padding: 50px 20px 60px;
+  color: #aaa;
+  font-size: 0.9rem;
+  user-select: none;
+  width: 100%;
+  margin-top: auto;
+}
+
+.footer-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  gap: 60px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.footer-col {
+  flex: 1 1 200px;
+  min-width: 180px;
+}
+
+.footer-col h4 {
+  color: #e91e63;
+  font-weight: 700;
+  margin-bottom: 14px;
+  user-select: none;
+}
+
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-col ul li {
+  margin-bottom: 8px;
+}
+
+.footer-col ul li a {
+  color: #aaa;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-col ul li a:hover {
+  color: #e91e63;
+  text-decoration: underline;
+}
+
+.social-links {
+  margin-top: 12px;
+  display: flex;
+  gap: 15px;
+}
+
+.social-links a {
+  color: #aaa;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.social-links a:hover {
+  color: #e91e63;
+}
+
+/* Footer bottom text */
+.footer > div:last-child {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.4);
+}
+
+/* RESPONSIVE */
+
+/* Narrow view: stack club-info & booking-form */
+@media (max-width: 1000px) {
+  .booking-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .club-info, .booking-form {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .date-time-container {
+    flex-direction: column;
+  }
+}
+
+/* Smaller screens */
+@media (max-width: 450px) {
+  .menu ul {
+    gap: 20px;
+  }
+  .booking-header h1 {
+    font-size: 2.4rem;
+  }
+  .booking-form {
+    padding: 25px 20px;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <div class="booking-header">
+        <div class="nav">
+            <div class="logo">
+              <img src="/images/club-logo-2.png" alt="Logo">
+            </div>
+            <div class="menu" id="menu-nav">
+                <ul>
+                  <li><a href="/api/dashboard">Home</a></li>
+                  <li><a href="/api/bar">Bars</a></li>
+                  <li><a href="/">Logout</a></li>
+                </ul>
+              </div>
+        </div>
+        <br><br><br><br>
+      <h1>Book Your Table</h1>
+      <p class="tagline">Experience luxury nightlife at its finest</p>
+    </div>
+
+    <div class="booking-container">
+      <!-- Club Information Section -->
+      <div class="club-info">
+        <div class="club-image-container">
+          <img src="" id="club-image" class="club-image" alt="Club Atmosphere">
+        </div>
+
+        <h2 id="club-name">Club Name</h2>
+
+        <div class="info-row">
+          <i class="fas fa-map-marker-alt"></i>
+          <span id="club-location">Location</span>
+        </div>
+
+        <div class="info-row">
+          <i class="far fa-clock"></i>
+          <span id="club-hours">12:00 PM - 03:00 AM</span>
+        </div>
+
+        <div class="info-row">
+          <i class="fas fa-star"></i>
+          <span id="club-rating">4.5 (120 reviews)</span>
+        </div>
+
+        <div class="info-row">
+          <i class="fas fa-utensils"></i>
+          <span>Multicuisine</span>
+        </div>
+
+        <!-- Table Availability Section -->
+        <div class="table-availability">
+          <div class="availability-title">
+            <i class="fas fa-table"></i>
+            <h3>Table Availability</h3>
+          </div>
+
+          <div class="tables-status">
+            <div class="tables-count">
+              <div class="tables-number" id="available-tables">12</div>
+              <div class="tables-label">tables available</div>
+            </div>
+            <div class="availability-status high" id="availability-indicator">
+              <i class="fas fa-check-circle"></i>
+              <span>High Availability</span>
+            </div>
+          </div>
+
+          <div class="availability-meter">
+            <div class="availability-progress" id="availability-bar" style="width: 80%;"></div>
+          </div>
+
+          <div class="availability-times">
+            <div class="time-slots-title">
+              <i class="far fa-clock"></i>
+              <span>Popular Time Slots</span>
+            </div>
+            <div class="time-slots" id="time-slots-container">
+              <div class="time-slot" data-tables="4">
+                7:00 PM
+                <span class="table-count">4 tables left</span>
+              </div>
+              <div class="time-slot" data-tables="6">
+                8:00 PM
+                <span class="table-count">6 tables left</span>
+              </div>
+              <div class="time-slot low-availability" data-tables="2">
+                9:00 PM
+                <span class="table-count">2 tables left</span>
+              </div>
+              <div class="time-slot" data-tables="5">
+                10:00 PM
+                <span class="table-count">5 tables left</span>
+              </div>
+              <div class="time-slot" data-tables="8">
+                11:00 PM
+                <span class="table-count">8 tables left</span>
+              </div>
+              <div class="time-slot" data-tables="10">
+                12:00 AM
+                <span class="table-count">10 tables left</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="refresh-availability" id="refresh-availability">
+            <i class="fas fa-sync-alt"></i>
+            <span>Refresh Availability</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Booking Form Section -->
+      <div class="booking-form">
+        <h2>Reserve Your Experience</h2>
+        <form id="table-booking-form">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" required>
+          </div>
+
+          <div class="date-time-container">
+            <div class="form-group">
+              <label for="date">Date</label>
+              <input type="date" id="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+              <label for="time">Time</label>
+              <input type="time" id="time" name="time" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="has-membership">Do you have a membership?</label>
+            <select id="has-membership" name="has-membership" required>
+              <option value="">Select an option</option>
+              <option value="yes">Yes, I have a membership</option>
+              <option value="no">No, I don't have a membership</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="membership-type-group" style="display: none;">
+            <label for="membership-type">Select your membership type</label>
+            <select id="membership-type" name="membership-type" required>
+              <option value="">Select membership type</option>
+              <option value="gold">Gold</option>
+              <option value="platinum">Platinum</option>
+              <option value="diamond">Diamond</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="discount-code-group" style="display: none;">
+            <label for="discount-code">Enter your discount code</label>
+            <input type="text" id="discount-code" name="discount-code" placeholder="Enter discount code">
+          </div>
+
+          <div class="form-group">
+            <label for="guests">Number of Guests</label>
+            <select id="guests" name="guests" required>
+              <option value="">Select number of guests</option>
+              <option value="1">1 Guest</option>
+              <option value="2">2 Guests</option>
+              <option value="3">3 Guests</option>
+              <option value="4">4 Guests</option>
+              <option value="5">5 Guests</option>
+              <option value="6">6 Guests</option>
+              <option value="7">7 Guests</option>
+              <option value="8">8 Guests</option>
+              <option value="9">9 Guests</option>
+              <option value="10">10+ Guests</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="special-requests">Special Requests (Optional)</label>
+            <textarea id="special-requests" name="special-requests" placeholder="Any special requests or dietary requirements?"></textarea>
+          </div>
+
+          <!-- Booking Summary Section -->
+          <div class="summary-section">
+            <h3 class="summary-title">
+              <i class="fas fa-calculator"></i>
+              Booking Summary
+            </h3>
+
+            <div class="summary-row">
+              <span>Base Amount (per guest)</span>
+              <span id="base-amount">₹0</span>
+            </div>
+
+            <div class="summary-row">
+              <span>Number of Guests</span>
+              <span id="guest-count">0</span>
+            </div>
+
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span id="subtotal">₹0</span>
+            </div>
+
+            <div class="summary-row" id="membership-discount-row" style="display: none;">
+              <span>Membership Discount</span>
+              <span id="membership-discount">-₹0</span>
+            </div>
+
+            <div class="summary-row" id="group-discount-row" style="display: none;">
+              <span>Group Discount (10+ guests)</span>
+              <span id="group-discount">-₹0</span>
+            </div>
+
+            <div class="total-row">
+              <span>Total Amount</span>
+              <span id="total-amount">₹0</span>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-calendar-check"></i>
+            Confirm Reservation
+          </button>
+
+          <div class="booking-confirmation">
+            By confirming this reservation, you agree to our terms and conditions.
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-col">
+        <img src="/images/club-logo-2.png" alt="Club Verse Logo" style="max-width: 150px;" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=&#39;http:www.w3.org/2000/svg&#39; viewBox=&#39;0 0 200 100&#39;%3E%3Ctext x=&#39;100&#39; y=&#39;60&#39; font-family=&#39;serif&#39; font-size=&#39;24&#39; text-anchor=&#39;middle&#39; fill=&#39;%23d4af37&#39;%3EClub Verse%3C/text%3E%3C/svg%3E';">
+        <p style="margin-top: 20px; color: rgba(255,255,255,0.7); line-height: 1.6;">Experience the ultimate nightlife destination where luxury meets entertainment.</p>
+      </div>
+      <div class="footer-col">
+        <h4>About Us</h4>
+        <ul>
+          <li><a href="/api/ourservices">Our Services</a></li>
+          <li><a href="/api/privacy-policy">Privacy Policy</a></li>
+          <li><a href="/api/team">Our Team</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Get Help</h4>
+        <ul>
+          <li><a href="/api/FAQ">FAQ</a></li>
+          <li><a href="/api/contactus">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact Info</h4>
+        <ul>
+          <li><a href="tel:+911234567890">+91 1234567890</a></li>
+          <li><a href="mailto:info@clubverse.com">info@clubverse.com</a></li>
+          <li style="color: rgba(255,255,255,0.7);">Sector 17, Chandigarh</li>
+        </ul>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5);">
+      <p>&copy; 2024 Club Verse. All rights reserved. | Designed for the ultimate nightlife experience.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Club data
+    const clubs = {
+      club1: {
+        name: "Paara Night Club",
+        location: "Ludhiana",
+        hours: "12:00 PM - 03:00 AM",
+        rating: "4.5 (120 reviews)",
+        image: "/images/poo.png"
+      },
+      club2: {
+        name: "Boulevard",
+        location: "Chandigarh",
+        hours: "12:00 PM - 03:00 AM",
+        rating: "4.3 (95 reviews)",
+        image: "/images/bl.webp"
+      },
+      club3: {
+        name: "Brew Estate",
+        location: "Chandigarh",
+        hours: "11:00 AM - 01:00 AM",
+        rating: "4.6 (150 reviews)",
+        image: "/images/grand.jpg"
+      },
+      club4: {
+        name: "Luna Night Club",
+        location: "Ludhiana",
+        hours: "12:00 PM - 03:00 AM",
+        rating: "4.2 (85 reviews)",
+        image: "/images/luna%20night%20club.jpg"
+      },
+      club5: {
+        name: "Kalaghoda",
+        location: "Chandigarh",
+        hours: "11:00 AM - 02:00 AM",
+        rating: "4.7 (180 reviews)",
+        image: "/images/kgf.webp"
+      },
+      club6: {
+        name: "Baklavi",
+        location: "Ludhiana",
+        hours: "12:00 PM - 03:00 AM",
+        rating: "4.4 (110 reviews)",
+        image: "/images/baklavi3.avif"
+      }
+    };
+
+    // Get URL parameters
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      const results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    // Initialize page
+    function initializePage() {
+      const clubId = getUrlParameter('club');
+      if (clubId && clubs[clubId]) {
+        updateClubInfo(clubId);
+      }
+
+      // Set up event listeners
+      setupEventListeners();
+    }
+
+    // Update club information
+    function updateClubInfo(clubId) {
+      const club = clubs[clubId];
+      if (!club) return;
+
+      document.getElementById('club-name').textContent = club.name;
+      document.getElementById('club-location').textContent = club.location;
+      document.getElementById('club-hours').textContent = club.hours;
+      document.getElementById('club-rating').textContent = club.rating;
+      document.getElementById('club-image').src = club.image;
+
+      // Store current club data
+      window.currentClub = club;
+      window.currentClubId = clubId;
+    }
+
+    // Set up event listeners
+    function setupEventListeners() {
+      // Membership selection
+      document.getElementById('has-membership').addEventListener('change', function() {
+        const membershipGroup = document.getElementById('membership-type-group');
+        const discountGroup = document.getElementById('discount-code-group');
+
+        if (this.value === 'yes') {
+          membershipGroup.style.display = 'block';
+          discountGroup.style.display = 'none';
+        } else {
+          membershipGroup.style.display = 'none';
+          discountGroup.style.display = 'block';
+        }
+
+        updatePricingSummary();
+      });
+
+      // Membership type selection
+      document.getElementById('membership-type').addEventListener('change', updatePricingSummary);
+
+      // Guest count selection
+      document.getElementById('guests').addEventListener('change', updatePricingSummary);
+
+      // Discount code input
+      document.getElementById('discount-code').addEventListener('input', updatePricingSummary);
+
+      // Form submission
+      document.getElementById('table-booking-form').addEventListener('submit', handleFormSubmission);
+    }
+
+    // Update pricing summary
+    async function updatePricingSummary() {
+      if (!window.currentClub) return;
+
+      const guestCount = parseInt(document.getElementById('guests').value) || 0;
+      const hasMembership = document.getElementById('has-membership').value;
+      const membershipType = hasMembership === 'yes' ? document.getElementById('membership-type').value : null;
+
+      // Prepare payload
+      const payload = {
+        clubName: window.currentClub.name,
+        guests: guestCount,
+        membershipType: membershipType
+      };
+
+      try {
+        // Show a loading state to the user
+        document.getElementById('total-amount').textContent = 'Calculating...';
+
+        // Fetch dynamic price from backend
+        const response = await fetch('/api/calculate-price', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          const data = result.data;
+
+          // Update UI Elements
+          document.getElementById('base-amount').textContent = `₹${data.basePrice}`;
+          document.getElementById('guest-count').textContent = guestCount;
+          document.getElementById('subtotal').textContent = `₹${data.subtotal}`;
+          document.getElementById('total-amount').textContent = `₹${data.totalAmount}`;
+
+          // Handle Membership Discount Display
+          const membershipDiscountRow = document.getElementById('membership-discount-row');
+          if (data.membershipDiscount > 0) {
+            membershipDiscountRow.style.display = 'flex';
+            document.getElementById('membership-discount').textContent = `-₹${data.membershipDiscount}`;
+          } else {
+            membershipDiscountRow.style.display = 'none';
+          }
+
+          // Handle Group Discount Display
+          const groupDiscountRow = document.getElementById('group-discount-row');
+          if (data.groupDiscount > 0) {
+            groupDiscountRow.style.display = 'flex';
+            document.getElementById('group-discount').textContent = `-₹${data.groupDiscount}`;
+          } else {
+            groupDiscountRow.style.display = 'none';
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching price:', error);
+        // Display an error state in the UI
+        document.getElementById('total-amount').textContent = 'Error';
+      }
+    }
+
+    // Handle form submission
+    function handleFormSubmission(event) {
+      event.preventDefault();
+
+      // Get form data
+      const formData = new FormData(event.target);
+      const bookingData = Object.fromEntries(formData.entries());
+
+      // Add club information
+      bookingData.clubId = window.currentClubId;
+      bookingData.clubName = window.currentClub?.name;
+      bookingData.totalAmount = document.getElementById('total-amount').textContent.replace('₹', '');
+
+      // Send booking request
+      fetch('/api/reservations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Reservation confirmed! Check your email for confirmation details.');
+          window.location.href = '/api/dashboard';
+        } else {
+          alert('Reservation failed: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while processing your reservation.');
+      });
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', initializePage);
+  </script>
+</body>
+</html>

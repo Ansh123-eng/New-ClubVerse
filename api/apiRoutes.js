@@ -5,11 +5,13 @@ import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 
-import { protect } from '../middlewares/auth.js';
 import User from '../models/user.js';
 import Reservation from '../models/reservation.js';
 import Membership from '../models/membership.js';
 import Query from '../models/query.js';
+import Club from '../models/club.js';
+import TicketBooking from '../models/ticketBooking.js';
+
 import transporter from '../middlewares/mailer.js';
 import {
   checkPasswordStrength,
@@ -20,181 +22,193 @@ import {
   hashResetToken,
   getClientIP
 } from '../utils/validation.js';
+
 import { logger } from '../middlewares/logger.js';
+
+import {
+  calculatePricing,
+  getClubBasePrice,
+  validateDiscountCode,
+  getUserMembershipType
+} from '../utils/pricing.js';
+
 const router = express.Router();
 
-// Auth-specific rate limiters
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per window
-  message: 'Too many login attempts, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
+/* ---------------- CONSTANTS ---------------- */
+
+const MEMBERSHIP_DISCOUNTS = { gold: 0.05, platinum: 0.15, diamond: 0.25 };
+const GROUP_DISCOUNT_THRESHOLD = 10;
+const GROUP_DISCOUNT_RATE = 0.05;
+
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5 });
+const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 3 });
+
+/* ---------------- DASHBOARD ---------------- */
+
+router.get('/dashboard', async (req, res) => {
+  try {
+    let userData = null;
+    const token = req.cookies?.token;
+
+    if (token) {
+      try {
+        userData = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+      } catch {}
+    }
+
+    if (userData?.id) {
+      const membership = await Membership.findOne({
+        userId: userData.id,
+        status: 'active'
+      }).sort({ createdAt: -1 });
+
+      if (membership) {
+        userData.membership = {
+          type: membership.membershipType,
+          startDate: membership.startDate,
+          endDate: membership.endDate
+        };
+      }
+    }
+
+    const instaImages = [
+      'food.jpg','drink.jpg','pizza.jpg','beerr.avif',
+      'hand.png','taco.png','drum.png','wine.png'
+    ];
+
+    res.render('dashboard', { instaImages, user: userData || null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
 });
 
-const registerLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // 3 registration attempts per hour
-  message: 'Too many registration attempts, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+/* ---------------- LOGIN ---------------- */
 
-// CSRF protection removed to fix server errors
-
-router.post('/login', authLimiter, async (req, res, next) => {
+router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
-    const clientIP = getClientIP(req);
 
-    const emailValidation = validateEmail(email);
-    if (!emailValidation.isValid) {
-      logger.warn(`Invalid email format attempt from ${clientIP}: ${email}`);
-      return res.status(400).render('login', { error: 'Please enter a valid email address' });
-    }
+    if (!validateEmail(email).isValid)
+      return res.render('login', { error: 'Invalid email' });
 
     const user = await User.findOne({ email });
-    if (!user) {
-      logger.warn(`Login attempt for non-existent user: ${email} from ${clientIP}`);
-      return res.status(401).render('login', { error: 'Invalid email or password' });
-    }
+    if (!user) return res.render('login', { error: 'Invalid credentials' });
 
-    if (user.isLocked) {
-      const lockoutMessage = `Account locked due to too many failed attempts. Try again after ${new Date(user.lockUntil).toLocaleString()}`;
-      logger.warn(`Login attempt on locked account: ${email} from ${clientIP}`);
-      return res.status(423).render('login', { error: 'Account temporarily locked', lockoutMessage });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      await user.incLoginAttempts();
-      logger.warn(`Failed login attempt for user: ${email} from ${clientIP}. Attempts: ${user.failedAttempts + 1}`);
-
-      if (user.failedAttempts >= 4) {
-        const lockoutMessage = 'Account locked for 2 hours due to multiple failed attempts';
-        return res.status(423).render('login', { error: 'Account temporarily locked', lockoutMessage });
-      }
-
-      return res.status(401).render('login', { error: 'Invalid email or password' });
-    }
-
-    await user.resetLoginAttempts();
-    logger.info(`Successful login for user: ${email} from ${clientIP}`);
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.render('login', { error: 'Invalid credentials' });
 
     const token = jwt.sign(
       { id: user._id, email: user.email, name: user.name },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'your_jwt_secret',
       { expiresIn: '1d' }
     );
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000,
-      sameSite: 'strict'
-    });
-
-    return res.status(302).redirect('/api/dashboard');
-  } catch (error) {
-    logger.error('Login error:', error);
-    return res.status(500).render('login', { error: 'Server error occurred. Please try again.' });
+    res.cookie('token', token, { httpOnly: true });
+    res.redirect('/api/dashboard');
+  } catch (err) {
+    console.error(err);
+    res.render('login', { error: 'Server error' });
   }
 });
 
-router.post('/register', registerLimiter, async (req, res, next) => {
+/* ---------------- REGISTER ---------------- */
+
+router.post('/register', registerLimiter, async (req, res) => {
   try {
     const { name, email, password, confirmPassword } = req.body;
-    const clientIP = getClientIP(req);
 
-    // Basic field validation
-    if (!name || !email || !password || !confirmPassword) {
-      logger.warn(`Registration attempt with missing fields from ${clientIP}`);
-      return res.status(400).render('register', {
-        error: 'All fields are required'
-      });
-    }
+    if (!name || !email || !password || !confirmPassword)
+      return res.render('register', { error: 'All fields required' });
 
+    if (!validateEmail(email).isValid)
+      return res.render('register', { error: 'Invalid email' });
 
-    const nameValidation = validateName(name);
-    if (!nameValidation.isValid) {
-      logger.warn(`Invalid name format from ${clientIP}: ${name}`);
-      return res.status(400).render('register', {
-        error: nameValidation.error
-      });
-    }
+    if (!checkPasswordStrength(password).isValid)
+      return res.render('register', { error: 'Weak password' });
 
-    // Validate email
-    const emailValidation = validateEmail(email);
-    if (!emailValidation.isValid) {
-      logger.warn(`Invalid email format from ${clientIP}: ${email}`);
-      return res.status(400).render('register', {
-        error: emailValidation.error
-      });
-    }
+    if (!validatePasswordConfirmation(password, confirmPassword).isValid)
+      return res.render('register', { error: 'Passwords do not match' });
 
-    // Validate password strength
-    const passwordValidation = checkPasswordStrength(password);
-    if (!passwordValidation.isValid) {
-      logger.warn(`Weak password attempt from ${clientIP}`);
-      return res.status(400).render('register', {
-        error: 'Password does not meet security requirements. Please choose a stronger password.'
-      });
-    }
+    const exists = await User.findOne({ email });
+    if (exists) return res.render('register', { error: 'User already exists' });
 
-    // Validate password confirmation
-    const confirmValidation = validatePasswordConfirmation(password, confirmPassword);
-    if (!confirmValidation.isValid) {
-      logger.warn(`Password confirmation mismatch from ${clientIP}`);
-      return res.status(400).render('register', {
-        error: confirmValidation.error
-      });
-    }
+    const hashed = await bcrypt.hash(password, 10);
+    await User.create({ name, email, password: hashed });
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      logger.warn(`Registration attempt for existing email from ${clientIP}: ${email}`);
-      return res.status(400).render('register', {
-        error: 'User already exists with this email'
-      });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user
-    const user = new User({
-      name: nameValidation.sanitizedName,
-      email,
-      password: hashedPassword
-    });
-
-    await user.save();
-    logger.info(`New user registered: ${email} from ${clientIP}`);
-
-    return res.status(201).render('login', {
-      success: 'Registration successful! Please login.'
-    });
-  } catch (error) {
-    logger.error('Registration error:', error);
-    return res.status(500).render('register', {
-      error: 'Server error occurred. Please try again.'
-    });
+    res.render('login', { success: 'Registration successful' });
+  } catch (err) {
+    console.error(err);
+    res.render('register', { error: 'Server error' });
   }
 });
+
+/* ---------------- LOGOUT ---------------- */
 
 router.get('/logout', (req, res) => {
   res.clearCookie('token');
-  return res.redirect('/');
+  res.redirect('/');
 });
+
+/* ---------------- USER MEMBERSHIP ---------------- */
+
+router.post('/user-membership', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const membershipType = await getUserMembershipType(email);
+    res.json({ success: true, membershipType });
+  } catch {
+    res.status(500).json({ success: false });
+  }
+});
+
+/* ---------------- CALCULATE PRICE ---------------- */
+
+router.post('/calculate-price', async (req, res) => {
+  try {
+    const { clubName, guests, membershipType } = req.body;
+
+    const guestCount = Number(guests) || 1;
+    let basePrice = 300;
+
+    if (clubName) {
+      const club = await Club.findOne({ name: clubName });
+      if (club?.basePrice) basePrice = club.basePrice;
+    }
+
+    const subtotal = basePrice * guestCount;
+    const memberDiscount = subtotal * (MEMBERSHIP_DISCOUNTS[membershipType] || 0);
+    const groupDiscount = guestCount >= GROUP_DISCOUNT_THRESHOLD
+      ? subtotal * GROUP_DISCOUNT_RATE
+      : 0;
+
+    res.json({
+      success: true,
+      data: {
+        basePrice,
+        subtotal,
+        membershipDiscount: Math.round(memberDiscount),
+        groupDiscount: Math.round(groupDiscount),
+        totalAmount: Math.round(subtotal - memberDiscount - groupDiscount)
+      }
+    });
+  } catch {
+    res.status(500).json({ success: false });
+  }
+});
+
+/* ---------------- RESERVATION ---------------- */
 
 router.post('/reservations', async (req, res) => {
   try {
-    const { name, email, phone, date, time, guests, specialRequests, club, clubLocation } = req.body;
-    if (!name || !email || !phone || !date || !time || !guests || !club) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
+    const { name, email, phone, date, time, guests, club } = req.body;
+
+    const pricing = calculatePricing(
+      Number(guests),
+      'none',
+      getClubBasePrice(club)
+    );
+
     const reservation = await Reservation.create({
       name,
       email,
@@ -202,246 +216,50 @@ router.post('/reservations', async (req, res) => {
       date,
       time,
       guests,
-      specialRequests,
       club,
-      clubLocation
+      ...pricing
     });
 
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: `🎉 Congratulations! Your Table Reservation at ${club} is Confirmed!`,
-      html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 20px; border-radius: 10px;">
-        <h2 style="color: #d4af37; text-align: center; font-size: 28px;">🎊 Congratulations ${name}! 🎊</h2>
-        <p style="font-size: 18px; text-align: center; color: #333;">Your table reservation has been successfully booked!</p>
-
-        <div style="background: rgba(255,255,255,0.9); padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #d4af37;">
-          <h3 style="color: #d4af37; margin-top: 0;">📅 Reservation Details:</h3>
-          <ul style="list-style: none; padding: 0;">
-            <li style="margin: 10px 0;"><strong>🏙️ Club:</strong> ${club}</li>
-            <li style="margin: 10px 0;"><strong>📆 Date:</strong> ${date}</li>
-            <li style="margin: 10px 0;"><strong>⏰ Time:</strong> ${time}</li>
-            <li style="margin: 10px 0;"><strong>👥 Guests:</strong> ${guests}</li>
-            <li style="margin: 10px 0;"><strong>📍 Location:</strong> ${clubLocation || 'Main Venue'}</li>
-            <li style="margin: 10px 0;"><strong>💝 Special Requests:</strong> ${specialRequests || 'None'}</li>
-          </ul>
-        </div>
-
-        <p style="font-size: 16px; text-align: center; color: #555;">
-          🎶 Get ready for an unforgettable night of music, drinks, and amazing vibes! 🎶<br>
-          We can't wait to welcome you to Club Verse!
-        </p>
-
-        <div style="text-align: center; margin: 30px 0;">
-          <p style="font-size: 20px; color: #d4af37; font-weight: bold;">🥂 Cheers to a fantastic evening! 🥂</p>
-        </div>
-
-        <br><small style="color: #777; font-size: 12px;">This is an automated email. Please do not reply.</small>
-      </div>`
-    };
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.error('Email send error:', err);
-      }
-    });
-
-    res.status(201).json({ message: 'Reservation successful! Confirmation email sent.' });
-  } catch (error) {
-    console.error('Reservation error:', error);
-    res.status(500).json({ error: 'Server error. Please try again.' });
+    res.status(201).json({ success: true, reservation });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Reservation failed' });
   }
 });
 
-router.post('/membership', async (req, res) => {
-  try {
-    // Decode token to get authenticated user
-    const decoded = jwt.verify(
-      req.cookies.token,
-      process.env.JWT_SECRET || 'your_jwt_secret'
-    );
-    req.user = decoded;
+/* ---------------- BOOK TICKETS (FIXED) ---------------- */
 
-    const { name, email, phone, membershipType, membershipPeriod } = req.body;
-
-    if (!name || !email || !phone || !membershipType || !membershipPeriod) {
-      return res.status(400).render('membership', {
-        error: 'All fields are required',
-        success: null,
-        user: req.user
-      });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).render('membership', {
-        error: 'Please enter a valid email address',
-        success: null,
-        user: req.user
-      });
-    }
-
-    // Validate phone number (basic validation)
-    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
-    if (!phoneRegex.test(phone)) {
-      return res.status(400).render('membership', {
-        error: 'Please enter a valid phone number',
-        success: null,
-        user: req.user
-      });
-    }
-
-    // Validate membership type
-    const validTypes = ['gold', 'platinum', 'diamond'];
-    if (!validTypes.includes(membershipType)) {
-      return res.status(400).render('membership', {
-        error: 'Invalid membership type selected',
-        success: null,
-        user: req.user
-      });
-    }
-
-    // Validate membership period
-    const validPeriods = ['weekly', 'monthly', 'annually'];
-    if (!validPeriods.includes(membershipPeriod)) {
-      return res.status(400).render('membership', {
-        error: 'Invalid membership period selected',
-        success: null,
-        user: req.user
-      });
-    }
-
-    // Create membership in MongoDB Atlas
-    const startDate = new Date();
-    let endDate = new Date(startDate);
-
-    switch (membershipPeriod) {
-      case 'weekly':
-        endDate.setDate(startDate.getDate() + 7);
-        break;
-      case 'monthly':
-        endDate.setMonth(startDate.getMonth() + 1);
-        break;
-      case 'annually':
-        endDate.setFullYear(startDate.getFullYear() + 1);
-        break;
-    }
-
-    const basePrices = {
-      gold: { weekly: 50, monthly: 150, annually: 1500 },
-      platinum: { weekly: 80, monthly: 250, annually: 2500 },
-      diamond: { weekly: 120, monthly: 400, annually: 4000 }
-    };
-
-    const membership = new Membership({
-      userId: req.user.id, // Use authenticated user ID from JWT token
-      name,
-      email,
-      phone,
-      membershipType,
-      membershipPeriod,
-      status: 'active',
-      startDate,
-      endDate,
-      totalAmount: basePrices[membershipType][membershipPeriod],
-      paymentStatus: 'completed' // Assuming payment is completed for now
-    });
-
-    await membership.save();
-
-    const membershipDetails = {
-      type: membershipType.charAt(0).toUpperCase() + membershipType.slice(1),
-      period: membershipPeriod.charAt(0).toUpperCase() + membershipPeriod.slice(1),
-      amount: membership.totalAmount,
-      endDate: membership.endDate.toDateString ? membership.endDate.toDateString() : membership.endDate.toDateString()
-    };
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: `🎉 Congratulations! Welcome to Club Verse ${membershipDetails.type} Membership!`,
-      html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 20px; border-radius: 10px;">
-        <h2 style="color: #d4af37; text-align: center; font-size: 28px;">🎊 Congratulations ${name}! 🎊</h2>
-        <p style="font-size: 18px; text-align: center; color: #333;">Welcome to the Club Verse family! Your membership is now active.</p>
-
-        <div style="background: rgba(255,255,255,0.9); padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #d4af37;">
-          <h3 style="color: #d4af37; margin-top: 0;">💎 Your Membership Details:</h3>
-          <ul style="list-style: none; padding: 0;">
-            <li style="margin: 10px 0;"><strong>🏆 Membership Type:</strong> ${membershipDetails.type}</li>
-            <li style="margin: 10px 0;"><strong>⏱️ Period:</strong> ${membershipDetails.period}</li>
-            <li style="margin: 10px 0;"><strong>📞 Phone:</strong> ${phone}</li>
-            <li style="margin: 10px 0;"><strong>💰 Amount Paid:</strong> ₹${membershipDetails.amount}</li>
-            <li style="margin: 10px 0;"><strong>📅 Valid Until:</strong> ${membershipDetails.endDate}</li>
-          </ul>
-        </div>
-
-        <div style="background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <h4 style="color: #d4af37; margin-top: 0;">🎁 Your Exclusive Benefits:</h4>
-          <ul style="color: #555;">
-            ${membershipDetails.type === 'Gold' ? '<li>Priority entry at all locations</li><li>1 free welcome drink per visit</li><li>10% off on all drinks & food</li>' : ''}
-            ${membershipDetails.type === 'Platinum' ? '<li>All Gold benefits included</li><li>Complimentary guest pass (monthly)</li><li>15% off on all drinks & food</li><li>VIP lounge access</li>' : ''}
-            ${membershipDetails.type === 'Diamond' ? '<li>All Platinum benefits included</li><li>Unlimited VIP entry</li><li>25% off on all drinks & food</li><li>Exclusive lounge access</li><li>Personal concierge service</li>' : ''}
-          </ul>
-        </div>
-
-        <p style="font-size: 16px; text-align: center; color: #555;">
-          🎶 Get ready to experience the ultimate nightlife with Club Verse! 🎶<br>
-          Your membership card will be delivered within 3-5 business days.
-        </p>
-
-        <div style="text-align: center; margin: 30px 0;">
-          <p style="font-size: 20px; color: #d4af37; font-weight: bold;">🥂 Welcome to the VIP Club! 🥂</p>
-        </div>
-
-        <br><small style="color: #777; font-size: 12px;">This is an automated email. Please do not reply.</small>
-      </div>`
-    };
-
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.error('Membership email send error:', err);
-      } else {
-        console.log('Membership confirmation email sent:', info.response);
-      }
-    });
-
-    return res.status(200).render('membership', {
-      error: null,
-      success: `Thank you ${name}! Your ${membershipDetails.type} membership (${membershipDetails.period}) has been registered. Check your email for confirmation.`,
-      user: req.user
-    });
-
-  } catch (error) {
-    console.error('Membership registration error:', error);
-    return res.status(500).render('membership', {
-      error: 'Server error occurred. Please try again.',
-      success: null,
-      user: req.user
-    });
-  }
+router.get('/book-tickets', async (req, res) => {
+  const clubs = await Club.find({}, { name: 1 });
+  res.render('bookTickets', {
+    club: req.query.club || '',
+    event: req.query.event || '',
+    clubs: clubs.map(c => c.name)
+  });
 });
 
-router.post('/contact', async (req, res) => {
+router.post('/book-tickets', async (req, res) => {
   try {
-    const { name, email, phone, subject, message } = req.body;
+    console.log('🟡 RAW BOOKING BODY:', req.body);
 
-    if (!name || !email || !subject || !message) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    const query = await Query.create({
-      name,
-      email,
-      phone,
-      subject,
-      message
+    const booking = await TicketBooking.create({
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+      club: req.body.club || 'UNKNOWN_CLUB',
+      eventId: req.body.eventId || req.body.event || 'UNKNOWN_EVENT',
+      tickets: Number(req.body.tickets || 1),
+      membershipType: req.body.membershipType || 'none',
+      discountCode: req.body.discountCode || null,
+      totalAmount: Number(req.body.totalAmount || 0)
     });
 
-    res.status(201).json({ message: 'Query submitted successfully!' });
-  } catch (error) {
-    console.error('Query submission error:', error);
-    res.status(500).json({ error: 'Server error. Please try again.' });
+    console.log('✅ TICKET SAVED:', booking._id);
+
+    res.status(201).json({ success: true, booking });
+  } catch (err) {
+    console.error('❌ Ticket error:', err);
+    res.status(500).json({ error: 'Ticket booking failed' });
   }
 });
 

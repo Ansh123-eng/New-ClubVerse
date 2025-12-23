@@ -1,44 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Paara Night Club | Ludhiana</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css ">
   <link rel="stylesheet" href="/styles/paaranight.css">
   <style>
     .nav {
       display: flex;
-      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9),rgba(0, 0, 0, 0.8), transparent);
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.8), transparent);
       padding: 20px 40px;
       position: absolute;
       width: 100%;
       top: 0;
       z-index: 10;
     }
+
     .logo {
       display: flex;
       align-items: center;
     }
+
     .logo img {
       width: 180px;
       height: 130px;
       margin-top: -15px;
     }
+
     #menu-nav {
       margin-top: -27px;
       margin-left: 90px;
     }
+
     .logo p {
       font-size: 32px;
       font-family: "Sevillana", cursive;
       margin: 0;
     }
+
     .menu {
       display: flex;
       align-items: center;
       margin-left: 50px;
     }
+
     .menu ul {
       display: flex;
       gap: 80px;
@@ -46,6 +53,7 @@
       margin: 0;
       padding: 0;
     }
+
     .menu ul li a {
       text-decoration: none;
       color: white;
@@ -55,10 +63,12 @@
       border-radius: 8px;
       transition: background-color 0.3s, color 0.3s;
     }
+
     .menu ul li a:hover {
       background-color: aliceblue;
       color: black;
     }
+
     .banner-section {
       position: relative;
       width: 100%;
@@ -70,6 +80,7 @@
       text-align: center;
       color: white;
     }
+
     .banner-overlay {
       position: absolute;
       top: 0;
@@ -78,12 +89,14 @@
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
     }
+
     .banner-content {
       position: relative;
       z-index: 1;
       max-width: 800px;
       padding: 20px;
     }
+
     .banner-content h1 {
       font-size: 60px;
       margin-bottom: 20px;
@@ -92,17 +105,20 @@
       transform: translateY(-30px);
       animation: fadeSlideIn 1.5s ease forwards;
     }
+
     @keyframes fadeSlideIn {
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
+
     .banner-content p {
       font-size: 22px;
       margin-bottom: 30px;
       font-family: 'Poppins', sans-serif;
     }
+
     .banner-content a {
       display: inline-block;
       padding: 14px 28px;
@@ -114,15 +130,17 @@
       font-weight: 500;
       background: linear-gradient(135deg, #ff4e50, #f9d423);
       color: white;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
       transition: transform 0.3s, box-shadow 0.3s;
     }
+
     .banner-content a:hover {
       transform: scale(1.1);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
     }
   </style>
 </head>
+
 <body>
 
   <!-- Navigation -->
@@ -145,7 +163,9 @@
     <div class="banner-content">
       <h1>PAARA NIGHT CLUB</h1>
       <p>Ludhiana’s Premier Destination for Nightlife, Music, and Unforgettable Moments</p>
-      <a href="/api/reserve-table">Reserve Table</a>
+      <a
+        href="/api/reserve-table?club=PAARA%20NIGHT%20CLUB&image=/images/paara2.jpg&location=Centra%20Mall%2C%20Industrial%20Area%20Phase%20I%2C%20Ludhiana%2C%20160002">Reserve
+        Table</a>
       <a href="#events">Upcoming Events</a>
     </div>
   </section>
@@ -155,8 +175,12 @@
     <h2 class="section-title">About Paara</h2>
     <div class="about-content">
       <div class="about-text">
-        <p>Paara Night Club is a renowned entertainment destination offering a variety of craft cocktails, amazing food, and an unforgettable ambiance. Whether you're here to dance the night away with friends or enjoy a sophisticated night out, Paara provides a lively and electrifying atmosphere perfect for any occasion.</p>
-        <p>Our carefully curated selection of premium spirits, signature cocktails, and unique events make us the perfect destination for nightlife enthusiasts and food connoisseurs alike. Experience the pinnacle of Ludhiana's nightlife at Paara Night Club.</p>
+        <p>Paara Night Club is a renowned entertainment destination offering a variety of craft cocktails, amazing food,
+          and an unforgettable ambiance. Whether you're here to dance the night away with friends or enjoy a
+          sophisticated night out, Paara provides a lively and electrifying atmosphere perfect for any occasion.</p>
+        <p>Our carefully curated selection of premium spirits, signature cocktails, and unique events make us the
+          perfect destination for nightlife enthusiasts and food connoisseurs alike. Experience the pinnacle of
+          Ludhiana's nightlife at Paara Night Club.</p>
       </div>
       <div class="about-image">
         <img src="/images/interior-paara.jpg" alt="Paara interior">
@@ -187,19 +211,19 @@
         </div>
       </div>
       <div class="gallery-item">
-        <img src="/images/october.jpg" alt="VIP Experience">
+        <img src="/images/paaranew.jpg" alt="VIP Experience">
         <div class="gallery-overlay">
           <h3>VIP Experiences</h3>
         </div>
       </div>
       <div class="gallery-item">
-        <img src="/images/slider.jpg" alt="DJ Nights">
+        <img src="/images/paaradj.jpg" alt="DJ Nights">
         <div class="gallery-overlay">
           <h3>DJ Nights</h3>
         </div>
       </div>
       <div class="gallery-item">
-        <img src="/images/bee2.png" alt="Special Events">
+        <img src="/images/paaraspecial.jpg" alt="Special Events">
         <div class="gallery-overlay">
           <h3>Special Events</h3>
         </div>
@@ -241,37 +265,51 @@
       <div class="event-card">
         <div class="event-image"><img src="/images/paara2.jpg" alt="DJ Night Event"></div>
         <div class="event-content">
-          <div class="event-date"><i class="far fa-calendar-alt"></i><span>May 10, 2025</span></div>
-          <h3>DJ SKYWALKER LIVE</h3>
-          <p>Experience an unforgettable night with international DJ Skywalker spinning the best electronic tracks.</p>
-          <a href="#" class="event-btn">Book Tickets</a>
+          <div class="event-date"><i class="far fa-calendar-alt"></i><span>feb 10, 2026</span></div>
+          <h3>Throwback Thursday</h3>
+          <p>Early 2000s pop & hip-hop.</p>
+          <a href="/api/book-tickets?club=PAARA%20NIGHT%20CLUB&event=THROWBACK%20THURSDAY" class="event-btn">
+            Book Tickets
+          </a>
+
         </div>
       </div>
       <div class="event-card">
         <div class="event-image"><img src="/images/anmol.jpg" alt="Retro Night"></div>
         <div class="event-content">
-          <div class="event-date"><i class="far fa-calendar-alt"></i><span>May 15, 2025</span></div>
-          <h3>RETRO FRIDAY</h3>
+          <div class="event-date"><i class="far fa-calendar-alt"></i><span>May 15, 2026</span></div>
+          <h3>MASQUERADE MADNESS</h3>
           <p>Step back in time with classic hits from the 80s and 90s. Dress code: Vintage Vibes.</p>
-          <a href="#" class="event-btn">Book Tickets</a>
+          <a href="/api/book-tickets?club=PAARA%20NIGHT%20CLUB&event=MASQUERADE%20MADNESS" class="event-btn">
+            Book Tickets
+          </a>
+
         </div>
       </div>
       <div class="event-card">
-        <div class="event-image"><img src="/images/slider.jpg" alt="Bollywood Night"></div>
+        <div class="event-image"><img src="/images/bollywood.webp" alt="Bollywood Night"></div>
         <div class="event-content">
-          <div class="event-date"><i class="far fa-calendar-alt"></i><span>May 20, 2025</span></div>
+          <div class="event-date"><i class="far fa-calendar-alt"></i><span>jan 20, 2026</span></div>
           <h3>BOLLYWOOD BEATS</h3>
           <p>Dance to the hottest Bollywood tracks with special performances and themed cocktails.</p>
-          <a href="#" class="event-btn">Book Tickets</a>
+          <a href="/api/book-tickets?club=PAARA%20NIGHT%20CLUB&event=BOLLYWOOD%20BEATS" class="event-btn">
+            Book Tickets
+          </a>
+
         </div>
       </div>
       <div class="event-card">
         <div class="event-image"><img src="/images/bee2.png" alt="Ladies Night"></div>
         <div class="event-content">
-          <div class="event-date"><i class="far fa-calendar-alt"></i><span>May 25, 2025</span></div>
-          <h3>LADIES NIGHT</h3>
-          <p>Special night for ladies with complimentary drinks and exclusive deals all night long.</p>
-          <a href="#" class="event-btn">Book Tickets</a>
+          <div class="event-date"><i class="far fa-calendar-alt"></i><span>dec 25, 2025</span></div>
+          <h3>BEER FEST NIGHT</h3>
+          <p>Special night  with complimentary drinks and exclusive deals all night long.</p>
+          <a href="/api/book-tickets?club=PAARA%20NIGHT%20CLUB&event=BEER%20FEST%20NIGHT" class="event-btn">
+            Book Tickets
+          </a>
+
+
+
         </div>
       </div>
     </div>
@@ -313,7 +351,9 @@
         </div>
       </div>
       <div class="map">
-        <iframe src="https://www.google.com/maps/embed?pb= !1m18!1m12!1m3!1d3424.889377168839!2d75.84915937520674!3d30.879732074517783!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391a824c01ab3de9%3A0x4b7e6dce2736b7a5!2sCentra%20Mall!5e0!3m2!1sen!2sin!4v1715181600000!5m2!1sen!2sin" allowfullscreen="" loading="lazy"></iframe>
+        <iframe
+          src="https://www.google.com/maps/embed?pb= !1m18!1m12!1m3!1d3424.889377168839!2d75.84915937520674!3d30.879732074517783!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391a824c01ab3de9%3A0x4b7e6dce2736b7a5!2sCentra%20Mall!5e0!3m2!1sen!2sin!4v1715181600000!5m2!1sen!2sin"
+          allowfullscreen="" loading="lazy"></iframe>
       </div>
     </div>
   </section>
@@ -322,7 +362,7 @@
   <script>
     // Smooth Scroll
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function(e) {
+      anchor.addEventListener('click', function (e) {
         e.preventDefault();
         const targetId = this.getAttribute('href');
         const targetElement = document.querySelector(targetId);
@@ -353,4 +393,5 @@
     });
   </script>
 </body>
+
 </html>
